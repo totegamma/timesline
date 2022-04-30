@@ -46,7 +46,17 @@ const App = () => {
 	}
 
 	useEffect(() => {
+		const savedToken = localStorage.getItem("access_token");
+		if (savedToken) {
+			setAccessToken(savedToken);
+		}
+	}, []);
+
+	useEffect(() => {
 		if (accessToken) {
+
+			localStorage.setItem("access_token", accessToken);
+
 			const requestOptions = {
 				method: 'POST',
 				headers: {
