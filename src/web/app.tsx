@@ -100,15 +100,17 @@ const App = () => {
 	return (<>
 	<CssBaseline />
 	<ThemeProvider theme={darkTheme}>
-		<Paper square>
+		<Paper square sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
 			<Typography variant="h4" gutterBottom component="div" sx={{ p: 2, pb: 0}}>
 				Timesline
 			</Typography>
 			<input type="button" value="click to open oauth" onClick={() => ipcRenderer.send("openExternal", oauthURL)}/><br/>
 			<input type="text" value={oauthCode} onChange={e => setOauthCode(e.target.value)}/>
 			<input type="button" value="submit" onClick={getToken}/>
+			<Box sx={{flexGrow: 1}}>
+				<Timeline></Timeline>
+			</Box>
 		</Paper>
-		<Timeline></Timeline>
 	</ThemeProvider>
 	</>);
 };
