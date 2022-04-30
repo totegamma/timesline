@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { Paper, Box, AppBar, Typography, CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
+import { Menubar } from './components/Menubar';
 import { Timeline } from './components/Timeline';
 
 const ipcRenderer = (window as any).preload.ipcRenderer;
@@ -101,9 +102,7 @@ const App = () => {
 	<CssBaseline />
 	<ThemeProvider theme={darkTheme}>
 		<Paper square sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-			<Typography variant="h4" gutterBottom component="div" sx={{ p: 2, pb: 0}}>
-				Timesline
-			</Typography>
+			<Menubar></Menubar>
 			<input type="button" value="click to open oauth" onClick={() => ipcRenderer.send("openExternal", oauthURL)}/><br/>
 			<input type="text" value={oauthCode} onChange={e => setOauthCode(e.target.value)}/>
 			<input type="button" value="submit" onClick={getToken}/>
