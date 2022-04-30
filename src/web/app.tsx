@@ -1,9 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import ReactDOM from 'react-dom/client';
+import { Paper, Box, AppBar, Typography, CssBaseline } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import { Timeline } from './components/Timeline';
-
-import './styles.css';
 
 const ipcRenderer = (window as any).preload.ipcRenderer;
 const client_id = process.env.slack_client_id;
@@ -12,9 +12,16 @@ const oauthURL = 'https://slack.com/oauth/authorize?scope=client&client_id=' + c
 const accessURL = 'https://slack.com/api/oauth.access';
 const wsURL = 'https://slack.com/api/rtm.connect';
 
+const darkTheme = createTheme({
+	palette: {
+		mode: 'dark',
+		primary: {
+			main: '#1976d2'
+		}
+	}
+});
 
 const App = () => {
-
 
 	const [oauthCode, setOauthCode] = useState("");
 	const [accessToken, setAccessToken] = useState<null | string>();
@@ -91,13 +98,18 @@ const App = () => {
 
 
 	return (<>
-		<div>
-			<h1>Hello World!</h1>
-		</div>
-		<input type="button" value="click to open oauth" onClick={() => ipcRenderer.send("openExternal", oauthURL)}/><br/>
-		<input type="text" value={oauthCode} onChange={e => setOauthCode(e.target.value)}/>
-		<input type="button" value="submit" onClick={getToken}/>
+	<CssBaseline />
+	<ThemeProvider theme={darkTheme}>
+		<Paper square>
+			<Typography variant="h4" gutterBottom component="div" sx={{ p: 2, pb: 0}}>
+				Timesline
+			</Typography>
+			<input type="button" value="click to open oauth" onClick={() => ipcRenderer.send("openExternal", oauthURL)}/><br/>
+			<input type="text" value={oauthCode} onChange={e => setOauthCode(e.target.value)}/>
+			<input type="button" value="submit" onClick={getToken}/>
+		</Paper>
 		<Timeline></Timeline>
+	</ThemeProvider>
 	</>);
 };
 
