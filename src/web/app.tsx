@@ -1,19 +1,17 @@
 import React, {useState, useEffect} from 'react';
 import ReactDOM from 'react-dom/client';
-//import { shell } from 'electron';
-//import { ipcRenderer } from 'electron'
-const ipcRenderer = (window as any).preload.ipcRenderer;
+
+import { Timeline } from './components/Timeline';
 
 import './styles.css';
 
-
+const ipcRenderer = (window as any).preload.ipcRenderer;
 const client_id = process.env.slack_client_id;
 const client_secret = process.env.slack_client_secret;
-
 const oauthURL = 'https://slack.com/oauth/authorize?scope=client&client_id=' + client_id;
-//const oauthURL = 'https://slack.com/oauth/authorize?scope=identify,client,channels:read&client_id=' + client_id;
 const accessURL = 'https://slack.com/api/oauth.access';
 const wsURL = 'https://slack.com/api/rtm.connect';
+
 
 const App = () => {
 
@@ -93,12 +91,13 @@ const App = () => {
 
 
 	return (<>
-	<div>
-		<h1>Hello World!</h1>
-	</div>
-	<input type="button" value="click to open oauth" onClick={() => ipcRenderer.send("openExternal", oauthURL)}/><br/>
-	<input type="text" value={oauthCode} onChange={e => setOauthCode(e.target.value)}/>
-	<input type="button" value="submit" onClick={getToken}/>
+		<div>
+			<h1>Hello World!</h1>
+		</div>
+		<input type="button" value="click to open oauth" onClick={() => ipcRenderer.send("openExternal", oauthURL)}/><br/>
+		<input type="text" value={oauthCode} onChange={e => setOauthCode(e.target.value)}/>
+		<input type="button" value="submit" onClick={getToken}/>
+		<Timeline></Timeline>
 	</>);
 };
 
