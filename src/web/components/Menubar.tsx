@@ -3,8 +3,13 @@ import { Typography, Box } from '@mui/material';
 import { Menu, MenuItem, Tooltip, IconButton, Avatar, Divider, ListItemIcon } from '@mui/material';
 import { Logout, Settings, PersonAdd } from '@mui/icons-material';
 
+import { IuseSession } from '../hooks/useSession';
 
-export function Menubar() {
+export interface MenubarProps {
+	session: IuseSession 
+}
+
+export function Menubar(props: MenubarProps) {
 
 	const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
@@ -85,7 +90,7 @@ export function Menubar() {
 				</ListItemIcon>
 				Settings
 			</MenuItem>
-			<MenuItem>
+			<MenuItem onClick={() => props.session.logout()}>
 				<ListItemIcon>
 					<Logout fontSize="small" />
 				</ListItemIcon>
