@@ -29,7 +29,9 @@ const App = () => {
 			<Paper square sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
 				<Menubar {...{session: session}}></Menubar>
 				<Box sx={{flexGrow: 1}}>
-					{ session.logined() ? <Timeline></Timeline> : <Login {...{ipc: ipcRenderer, session: session}}></Login> }
+					{ session.logined() ? 
+						<Timeline {...{session: session}}></Timeline> 
+						: <Login {...{ipc: ipcRenderer, session: session}}></Login> }
 				</Box>
 			</Paper>
 		</ThemeProvider>

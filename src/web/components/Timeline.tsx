@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Avatar } from '@mui/material';
 import { List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
 
+import { IuseSession } from '../hooks/useSession';
+
+
+const endpoint_getuserinfo = 'https://slack.com/api/users.info';
+
+interface RawRTMMessage {
+	type: string;
+	ts: string;
+	user: string;
+	channel: string;
+	text: string;
+}
 
 interface RTMMessage {
 	type: string;
@@ -56,9 +68,53 @@ const testMessage : RTMMessage[] = [
 	}
 ]
 
-export function Timeline() {
+export interface TimelineProps {
+	session: IuseSession
+}
 
-	const [messages, setMessages] = useState<RTMMessage[]>(testMessage);
+export function Timeline(props: TimelineProps) {
+
+	const [messages, setMessages] = useState<RTMMessage[]>([]);
+
+	const addMessage = (e: RawRTMMessage) =>{
+
+		const requestOptions = {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded',
+				'authorization': 'Bearer ' + props.session.userToken
+			},
+			body: `user=${e.user}`
+		};
+
+		fetch(endpoint_getuserinfo, requestOptions)
+			.then(response => response.json())
+			.then(data => {
+				console.log(data);
+				if (data.ok) {
+					//setAccessToken(data.access_token);
+					messages.push({
+						type: e.type,
+						ts: e.ts,
+						user: data.user.profile.display_name,
+						channel: e.channel,
+						text: e.text
+					});
+					setMessages(messages);
+
+				} else {
+					console.log("getuserinfo failed. reason: " + data.error);
+				}
+			});
+
+	}
+
+	useEffect(() => {
+		testMessage.forEach(e => addMessage(e));
+	}, []);
+
+
+
 
 	/*
 	useEffect(() => {
@@ -76,6 +132,9 @@ export function Timeline() {
 	}, [wsEndpoint]);
 	*/
 
+
+
+
 	return (
 		<List>
 			{messages.map(e =>
@@ -92,20 +151,4 @@ export function Timeline() {
 		</List>
 	);
 }
-/*
 
-*/
-/*
-			{messages.map(e => 
-			<React.Fragment key={e.ts}>
-				<ListItem alignItems="flex-start">
-					<ListItemAvatar>
-						<Avatar alt="Profile Picture" />
-					</ListItemAvatar>
-					<ListItemText primary={e.user} secondary={e.text} />
-				</ListItem>
-				<Divider variant="inset" component="li" />
-			<React.Fragment/>
-			)}
-
-*/
