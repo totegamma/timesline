@@ -5,7 +5,8 @@ import { List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/mate
 import { IuseSession } from '../hooks/useSession';
 
 
-const endpoint_getuserinfo = 'https://slack.com/api/users.info';
+const endpoint_getUserInfo = 'https://slack.com/api/users.info';
+const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
 
 interface RawRTMMessage {
 	type: string;
@@ -74,44 +75,94 @@ export interface TimelineProps {
 
 export function Timeline(props: TimelineProps) {
 
-	const [messages, setMessages] = useState<RTMMessage[]>([]);
+	const [messages, setMessages] = useState<RTMMessage[]>([]); // TODO: should be custom hook
 
-	const addMessage = (e: RawRTMMessage) =>{
+	const [userDict, setUserDict] = useState<{ [id: string]: any}>({});
+	const [channelDict, setChannelDict] = useState<{ [id: string]: any}>({});
 
-		const requestOptions = {
-			method: 'POST',
-			headers: {
-				'content-type': 'application/x-www-form-urlencoded',
-				'authorization': 'Bearer ' + props.session.userToken
-			},
-			body: `user=${e.user}`
-		};
+	//const [state, dispatch] = useReducer(reducer,'初期値');
 
-		fetch(endpoint_getuserinfo, requestOptions)
-			.then(response => response.json())
-			.then(data => {
-				console.log(data);
-				if (data.ok) {
-					//setAccessToken(data.access_token);
-					messages.push({
-						type: e.type,
-						ts: e.ts,
-						user: data.user.profile.display_name,
-						channel: e.channel,
-						text: e.text
-					});
-					setMessages(messages);
 
-				} else {
-					console.log("getuserinfo failed. reason: " + data.error);
-				}
-			});
+	const ResolveUser = async (id: string) => {
+
+		if (id in userDict) {
+			console.log("resolve user from cache");
+			return userDict[id];
+		} else {
+			console.log("resolve user from API");
+			const requestOptions = {
+				method: 'POST',
+				headers: {
+					'content-type': 'application/x-www-form-urlencoded',
+					'authorization': 'Bearer ' + props.session.userToken
+				},
+				body: `user=${id}`
+			};
+
+			const res = await fetch(endpoint_getUserInfo, requestOptions);
+			const data = await res.json();
+
+			//console.log(data);
+
+			userDict[id] = data.user.profile;
+			setUserDict(userDict);
+
+			return data.user.profile;
+		}
 
 	}
 
-	useEffect(() => {
-		testMessage.forEach(e => addMessage(e));
+	const ResolveChannel = async (id: string) => {
+
+		if (id in channelDict) {
+			console.log("resolve channel from cache");
+			return channelDict[id];
+		} else {
+			console.log("resovle channel from API");
+			const requestOptions = {
+				method: 'POST',
+				headers: {
+					'content-type': 'application/x-www-form-urlencoded',
+					'authorization': 'Bearer ' + props.session.userToken
+				},
+				body: `channel=${id}`
+			};
+
+			const res = await fetch(endpoint_getChannelInfo, requestOptions);
+			const data = await res.json();
+
+			//console.log(data);
+
+			channelDict[id] = data.channel;
+			setChannelDict(channelDict);
+
+			return data.channel;
+		}
+
+
+	}
+
+
+	const addMessage = async (e: RawRTMMessage) =>{
+		const rec = {
+			type: e.type,
+			ts: e.ts,
+			user: (await ResolveUser(e.user)).display_name,
+			channel: (await ResolveChannel(e.channel)).name,
+			text: e.text
+		};
+		console.log("addMessage");
+		setMessages((old) => [...old, rec]);
+	}
+
+	useEffect(() =>  {
+		testMessage.forEach((e, i) => setTimeout(addMessage, i*2000, e));
 	}, []);
+
+
+	useEffect(() => {
+		console.log("re rendered!");
+	});
 
 
 
