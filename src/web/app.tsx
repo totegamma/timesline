@@ -5,6 +5,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import { Menubar } from './components/Menubar';
 import { Timeline } from './components/Timeline';
+import { Login } from './components/Login';
 import { useSession, IuseSession } from './hooks/useSession';
 
 const ipcRenderer = (window as any).preload.ipcRenderer;
@@ -20,45 +21,18 @@ const darkTheme = createTheme({
 
 const App = () => {
 
-	/*
-	useEffect(() => {
-		if (wsEndpoint) {
-			const ws = new WebSocket(wsEndpoint);
-			ws.onmessage = (event: any) => {
-				const body = JSON.parse(event.data);
-				console.log(body);
-				if (body.envelope_id) {
-					console.log("replied!");
-					ws.send(JSON.stringify({envelope_id: body.envelope_id}));
-				}
-			};
-		}
-	}, [wsEndpoint]);
-	*/
-
-
-	const [oauthCode, setOauthCode] = useState("");
 	const session: IuseSession = useSession();
 
-
 	return (<>
-	<CssBaseline />
-	<ThemeProvider theme={darkTheme}>
-		<Paper square sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-			<Menubar {...{session: session}}></Menubar>
-			<Box sx={{flexGrow: 1}}>
-			{session.logined() ?
-				<Timeline></Timeline>
-				:
-				<Box>
-					<input type="button" value="click to open oauth" onClick={() => ipcRenderer.send("openExternal", session.oauthURL)}/><br/>
-					<input type="text" value={oauthCode} onChange={e => setOauthCode(e.target.value)}/>
-					<input type="button" value="submit" onClick={() => session.login(oauthCode)}/>
+		<CssBaseline />
+		<ThemeProvider theme={darkTheme}>
+			<Paper square sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+				<Menubar {...{session: session}}></Menubar>
+				<Box sx={{flexGrow: 1}}>
+					{ session.logined() ? <Timeline></Timeline> : <Login {...{ipc: ipcRenderer, session: session}}></Login> }
 				</Box>
-			}
-			</Box>
-		</Paper>
-	</ThemeProvider>
+			</Paper>
+		</ThemeProvider>
 	</>);
 };
 
