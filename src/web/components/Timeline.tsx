@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Avatar, Chip, IconButton } from '@mui/material';
 import { List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
+const Emoji = require('node-emoji');
 
 import LaunchIcon from '@mui/icons-material/Launch';
 
 import { IuseSession } from '../hooks/useSession';
 
 
+const endpoint_getEmojiList = 'https://slack.com/api/emoji.list';
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
 const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
 const endpoint_getPermalink = 'https://slack.com/api/chat.getPermalink';
@@ -128,6 +130,15 @@ const testMessage : any[] = [
 			channel: 'C03D2JHGC31'
 		}
 	},
+	{
+		type: 'reaction_added',
+		channel: 'U1EC1GLF7',
+		reaction: 'lisp',
+		item: {
+			ts: '1651292573.797394',
+			channel: 'C03D2JHGC31'
+		}
+	},
 ]
 
 export interface TimelineProps {
@@ -142,6 +153,7 @@ export function Timeline(props: TimelineProps) {
 	const [userDict, setUserDict] = useState<{ [id: string]: any}>({});
 	const [channelDict, setChannelDict] = useState<{ [id: string]: any}>({});
 
+	const [emojiDict, setEmojiDict] = useState<{ [key: string]: string}>({});
 
 
 	const ResolveUser = async (id: string) => {
@@ -282,6 +294,26 @@ export function Timeline(props: TimelineProps) {
 
 
 	useEffect(() =>  {
+
+
+		const requestOptions = {
+			method: 'POST',
+			headers: {
+				'authorization': 'Bearer ' + props.session.userToken
+			}
+		};
+
+		fetch(endpoint_getEmojiList, requestOptions)
+		.then(res => res.json())
+		.then(data => {
+			if (data.ok){
+				console.log(data);
+				setEmojiDict(data.emoji);
+			} else {
+				console.log("failed to get emoji list");
+			}
+		});
+
 		testMessage.forEach((e, i) => setTimeout(handleMessage, i*250, e));
 	}, []);
 
@@ -339,6 +371,12 @@ export function Timeline(props: TimelineProps) {
 									<Chip
 										key={data.key}
 										size='small'
+										avatar={
+										<Avatar alt={data.key} src={emojiDict[data.key]} sx={{bgcolor: 'unset'}}>
+											<Typography sx={{verticalAlign: 'middle'}}>
+												{Emoji.get(data.key)}
+											</Typography>
+										</Avatar>}
 										label={`${data.key} x ${data.count}`}
 										sx={{mr: '5px', mt: '5px'}}
 									/>
