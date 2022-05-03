@@ -22,9 +22,10 @@ interface RTMMessage {
 	user: string;
 	channel: string;
 	text: string;
+	avatar: string;
 }
 
-const testMessage : RTMMessage[] = [
+const testMessage : RawRTMMessage[] = [
 	{
 		type: 'message',
 		ts: '1651292573.797389',
@@ -149,7 +150,8 @@ export function Timeline(props: TimelineProps) {
 			ts: e.ts,
 			user: (await ResolveUser(e.user)).display_name,
 			channel: (await ResolveChannel(e.channel)).name,
-			text: e.text
+			text: e.text,
+			avatar: (await ResolveUser(e.user)).image_192
 		};
 		console.log("addMessage");
 		setMessages((old) => [...old, rec]);
@@ -192,7 +194,7 @@ export function Timeline(props: TimelineProps) {
 			<React.Fragment key={e.ts}>
 				<ListItem alignItems="flex-start">
 					<ListItemAvatar>
-						<Avatar alt="Profile Picture" />
+						<Avatar alt="Profile Picture" src={e.avatar} />
 					</ListItemAvatar>
 					<ListItemText primary={e.user} secondary={e.text} />
 				</ListItem>
