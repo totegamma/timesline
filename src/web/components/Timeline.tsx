@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Avatar } from '@mui/material';
+import { Box, Typography, Avatar, Chip } from '@mui/material';
 import { List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
 
 import { IuseSession } from '../hooks/useSession';
@@ -8,25 +8,36 @@ import { IuseSession } from '../hooks/useSession';
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
 const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
 
+interface Reaction {
+	key: string;
+	count: number;
+	image: string;
+}
+
 interface RawRTMMessage {
 	type: string;
 	ts: string;
 	user: string;
 	channel: string;
 	text: string;
+	reaction: string;
+	item: any;
 }
 
 interface RTMMessage {
 	type: string;
-	ts: number;
+	ts: string;
+	ts_number: number;
 	user: string;
 	channel: string;
+	channelID: string;
 	text: string;
 	avatar: string;
 	datetime: string;
+	reactions: Reaction[];
 }
 
-const testMessage : RawRTMMessage[] = [
+const testMessage : any[] = [
 	{
 		type: 'message',
 		ts: '1651292573.797389',
@@ -68,6 +79,15 @@ const testMessage : RawRTMMessage[] = [
 		user: 'U1EC1GLF7',
 		channel: 'C03D2JHGC31',
 		text: 'メッセージ6'
+	},
+	{
+		type: 'reaction_added',
+		channel: 'U1EC1GLF7',
+		reaction: 'thinking_face',
+		item: {
+			ts: '1651292573.797394',
+			channel: 'C03D2JHGC31'
+		}
 	}
 ]
 
@@ -82,7 +102,6 @@ export function Timeline(props: TimelineProps) {
 	const [userDict, setUserDict] = useState<{ [id: string]: any}>({});
 	const [channelDict, setChannelDict] = useState<{ [id: string]: any}>({});
 
-	//const [state, dispatch] = useReducer(reducer,'初期値');
 
 
 	const ResolveUser = async (id: string) => {
@@ -153,25 +172,62 @@ export function Timeline(props: TimelineProps) {
 		const user = await ResolveUser(e.user);
 		const rec = {
 			type: e.type,
-			ts: parseFloat(e.ts),
+			ts: e.ts,
+			ts_number: parseFloat(e.ts),
 			user: user.display_name,
 			channel: (await ResolveChannel(e.channel)).name,
+			channelID: e.channel,
 			text: e.text,
 			avatar: user.image_192,
-			datetime: datetime.toLocaleString()
+			datetime: datetime.toLocaleString(),
+			reactions: []
 		};
 		console.log("addMessage");
-		setMessages((old) => [...old, rec].sort((a, b) => b.ts - a.ts)); // TODO: replace sort to splice
+		setMessages((old) => [...old, rec].sort((a, b) => b.ts_number - a.ts_number)); // TODO: replace sort to splice
 	}
 
-	useEffect(() =>  {
-		testMessage.forEach((e, i) => setTimeout(addMessage, i*2000, e));
-	}, []);
 
+	const addReaction = (e: RawRTMMessage) => {
+		console.log("addReaction");
 
-	useEffect(() => {
-		console.log("re rendered!");
-	});
+		setMessages(old => {
+			let update = [...old]; // TODO: should be rewrite
+			const targetmsg = update.find(a => a.channelID == e.item.channel && a.ts == e.item.ts);
+			if (targetmsg){
+				const targetreaction = targetmsg.reactions.find(a => a.key == e.reaction);
+				if (targetreaction) {
+					targetreaction.count++;
+				} else {
+					targetmsg.reactions.push({
+						key: e.reaction,
+						count: 1,
+						image: ""
+					});
+				}
+			}
+			return update;
+		});
+
+	}
+
+	const removeReaction = (e: RawRTMMessage) => {
+	}
+
+	const handleMessage = (body: any) => {
+		switch (body.type) {
+			case 'message':
+				addMessage(body);
+				break;
+			case 'reaction_added':
+				addReaction(body);
+				break;
+			case 'reaction_removed':
+				removeReaction(body);
+				break;
+			default:
+			break;
+		}
+	}
 
 
 	useEffect(() => {
@@ -180,16 +236,21 @@ export function Timeline(props: TimelineProps) {
 			ws.onmessage = (event: any) => {
 				const body = JSON.parse(event.data);
 				console.log(body);
-				switch (body.type) {
-					case 'message':
-						addMessage(body);
-						break;
-					default:
-					break;
-				}
-			};
+				handleMessage(body);
+			}
 		}
 	}, [props.session.wsEndpoint]);
+
+
+	useEffect(() =>  {
+		testMessage.forEach((e, i) => setTimeout(handleMessage, i*500, e));
+	}, []);
+
+
+	useEffect(() => {
+		console.log("re rendered!");
+	});
+
 
 
 	return (
@@ -211,6 +272,15 @@ export function Timeline(props: TimelineProps) {
 							<Typography>
 								{e.text}
 							</Typography>
+						</Box>
+						<Box sx={{mt: '5px'}}>
+							{e.reactions.map((data) => 
+								<Chip
+									key={data.key}
+									size='small'
+									label={`${data.key} x ${data.count}`}
+								/>
+							)}
 						</Box>
 					</Box>
 				</ListItem>
