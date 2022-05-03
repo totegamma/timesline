@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Avatar, Chip } from '@mui/material';
+import { Box, Typography, Avatar, Chip, IconButton } from '@mui/material';
 import { List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
+
+import LaunchIcon from '@mui/icons-material/Launch';
 
 import { IuseSession } from '../hooks/useSession';
 
@@ -292,11 +294,11 @@ export function Timeline(props: TimelineProps) {
 		<List>
 			{messages.map(e =>
 			<React.Fragment key={e.ts}>
-				<ListItem sx={{alignItems: 'flex-start'}}>
+				<ListItem sx={{alignItems: 'flex-start', flex: 1}}>
 					<Box sx={{width: '48px', mr: '12px'}}>
 						<Avatar alt="Profile Picture" src={e.avatar} sx={{marginTop: '5px', width: '48px', height: '48px'}} />
 					</Box>
-					<Box>
+					<Box sx={{display: 'flex', flex: 1, flexDirection: 'column'}}>
 						<Box>
 							<Typography component="span" sx={{fontWeight: '700'}}>{e.user}</Typography>
 							<Typography component="span" sx={{fontWeight: '400'}}>
@@ -308,15 +310,22 @@ export function Timeline(props: TimelineProps) {
 								{e.text}
 							</Typography>
 						</Box>
-						<Box sx={{flexDirection: 'row'}}>
-							{e.reactions.map((data) => 
-								<Chip
-									key={data.key}
-									size='small'
-									label={`${data.key} x ${data.count}`}
-									sx={{mr: '5px', mt: '5px'}}
-								/>
-							)}
+						<Box sx={{display: 'flex', flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
+							<Box sx={{flex: 1}}>
+								{e.reactions.map((data) => 
+									<Chip
+										key={data.key}
+										size='small'
+										label={`${data.key} x ${data.count}`}
+										sx={{mr: '5px', mt: '5px'}}
+									/>
+								)}
+							</Box>
+							<Box>
+								<IconButton aria-label='open in slack' size='small'>
+									<LaunchIcon fontSize="inherit" />
+								</IconButton>
+							</Box>
 						</Box>
 					</Box>
 				</ListItem>
