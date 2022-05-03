@@ -18,7 +18,7 @@ interface RawRTMMessage {
 
 interface RTMMessage {
 	type: string;
-	ts: string;
+	ts: number;
 	user: string;
 	channel: string;
 	text: string;
@@ -153,7 +153,7 @@ export function Timeline(props: TimelineProps) {
 		const user = await ResolveUser(e.user);
 		const rec = {
 			type: e.type,
-			ts: e.ts,
+			ts: parseFloat(e.ts),
 			user: user.display_name,
 			channel: (await ResolveChannel(e.channel)).name,
 			text: e.text,
@@ -161,7 +161,7 @@ export function Timeline(props: TimelineProps) {
 			datetime: datetime.toLocaleString()
 		};
 		console.log("addMessage");
-		setMessages((old) => [...old, rec]);
+		setMessages((old) => [...old, rec].sort((a, b) => b.ts - a.ts)); // TODO: replace sort to splice
 	}
 
 	useEffect(() =>  {
