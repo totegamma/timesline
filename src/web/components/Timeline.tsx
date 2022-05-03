@@ -145,13 +145,14 @@ export function Timeline(props: TimelineProps) {
 
 
 	const addMessage = async (e: RawRTMMessage) =>{
+		const user = await ResolveUser(e.user);
 		const rec = {
 			type: e.type,
 			ts: e.ts,
-			user: (await ResolveUser(e.user)).display_name,
+			user: user.display_name,
 			channel: (await ResolveChannel(e.channel)).name,
 			text: e.text,
-			avatar: (await ResolveUser(e.user)).image_192
+			avatar: user.image_192
 		};
 		console.log("addMessage");
 		setMessages((old) => [...old, rec]);
