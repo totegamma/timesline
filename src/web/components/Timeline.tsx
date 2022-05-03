@@ -83,12 +83,48 @@ const testMessage : any[] = [
 	{
 		type: 'reaction_added',
 		channel: 'U1EC1GLF7',
+		reaction: 'heart',
+		item: {
+			ts: '1651292573.797394',
+			channel: 'C03D2JHGC31'
+		}
+	},
+	{
+		type: 'reaction_added',
+		channel: 'U1EC1GLF7',
 		reaction: 'thinking_face',
 		item: {
 			ts: '1651292573.797394',
 			channel: 'C03D2JHGC31'
 		}
-	}
+	},
+	{
+		type: 'reaction_added',
+		channel: 'U1EC1GLF7',
+		reaction: 'pray',
+		item: {
+			ts: '1651292573.797394',
+			channel: 'C03D2JHGC31'
+		}
+	},
+	{
+		type: 'reaction_added',
+		channel: 'white_check_mark',
+		reaction: 'thinking_face',
+		item: {
+			ts: '1651292573.797394',
+			channel: 'C03D2JHGC31'
+		}
+	},
+	{
+		type: 'reaction_added',
+		channel: 'U1EC1GLF7',
+		reaction: 'eyes',
+		item: {
+			ts: '1651292573.797394',
+			channel: 'C03D2JHGC31'
+		}
+	},
 ]
 
 export interface TimelineProps {
@@ -235,7 +271,6 @@ export function Timeline(props: TimelineProps) {
 			const ws = new WebSocket(props.session.wsEndpoint);
 			ws.onmessage = (event: any) => {
 				const body = JSON.parse(event.data);
-				console.log(body);
 				handleMessage(body);
 			}
 		}
@@ -243,12 +278,12 @@ export function Timeline(props: TimelineProps) {
 
 
 	useEffect(() =>  {
-		testMessage.forEach((e, i) => setTimeout(handleMessage, i*500, e));
+		testMessage.forEach((e, i) => setTimeout(handleMessage, i*250, e));
 	}, []);
 
 
 	useEffect(() => {
-		console.log("re rendered!");
+		console.log("re-rendered!");
 	});
 
 
@@ -273,12 +308,13 @@ export function Timeline(props: TimelineProps) {
 								{e.text}
 							</Typography>
 						</Box>
-						<Box sx={{mt: '5px'}}>
+						<Box sx={{flexDirection: 'row'}}>
 							{e.reactions.map((data) => 
 								<Chip
 									key={data.key}
 									size='small'
 									label={`${data.key} x ${data.count}`}
+									sx={{mr: '5px', mt: '5px'}}
 								/>
 							)}
 						</Box>
