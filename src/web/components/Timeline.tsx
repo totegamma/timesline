@@ -382,7 +382,7 @@ export function Timeline(props: TimelineProps) {
 									/>
 								)}
 							</Box>
-							<Box>
+							<Box sx={{display: 'flex', flexDirection: 'column-reverse'}}>
 								<IconButton aria-label='open in slack' size='small' onClick={() => openInSlack(e.channelID, e.ts)}>
 									<LaunchIcon fontSize="inherit" />
 								</IconButton>
