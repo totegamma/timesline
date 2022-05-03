@@ -13,6 +13,9 @@ const ipcRenderer = (window as any).preload.ipcRenderer;
 const darkTheme = createTheme({
 	palette: {
 		mode: 'dark',
+		background: {
+			default: '#222'
+		},
 		primary: {
 			main: '#1976d2'
 		}
@@ -24,9 +27,9 @@ const App = () => {
 	const session: IuseSession = useSession();
 
 	return (<>
-		<CssBaseline />
 		<ThemeProvider theme={darkTheme}>
-			<Paper square sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+			<CssBaseline />
+			<Paper square sx={{ display: 'flex', flexDirection: 'column' }}>
 				<Menubar {...{session: session}}></Menubar>
 				<Box sx={{flexGrow: 1}}>
 					{ session.logined() ? 

@@ -195,24 +195,27 @@ export function Timeline(props: TimelineProps) {
 	return (
 		<List>
 			{messages.map(e =>
-			<ListItem key={e.ts} sx={{'display': 'block', float: 'left'}}>
-				<Box sx={{width: '48px', float: 'left'}}>
-					<Avatar alt="Profile Picture" src={e.avatar} sx={{marginTop: '5px', width: '48px', height: '48px'}} />
-				</Box>
-				<Box sx={{float: 'left', width: 'calc(100% - 48px)', paddingLeft: '10px'}}>
-					<Box sx={{clear: 'both'}}>
-						<Typography component="span" sx={{fontSize: '15px', lineHeight: '20px', fontWeight: '700'}}>{e.user}</Typography>
-						<Typography component="span" sx={{fontSize: '15px', lineHeight: '20px', fontWeight: '400'}}>
-							{" #" +  e.channel + "・" + e.datetime}
-						</Typography>
+			<React.Fragment key={e.ts}>
+				<ListItem sx={{alignItems: 'flex-start'}}>
+					<Box sx={{width: '48px', mr: '12px'}}>
+						<Avatar alt="Profile Picture" src={e.avatar} sx={{marginTop: '5px', width: '48px', height: '48px'}} />
 					</Box>
 					<Box>
-						<Typography>
-							{e.text}
-						</Typography>
+						<Box>
+							<Typography component="span" sx={{fontWeight: '700'}}>{e.user}</Typography>
+							<Typography component="span" sx={{fontWeight: '400'}}>
+								{" #" +  e.channel + "・" + e.datetime}
+							</Typography>
+						</Box>
+						<Box>
+							<Typography>
+								{e.text}
+							</Typography>
+						</Box>
 					</Box>
-				</Box>
-			</ListItem>
+				</ListItem>
+				<Divider variant="inset" component="li" />
+			</React.Fragment>
 			)}
 		</List>
 	);

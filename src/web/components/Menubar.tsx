@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Box } from '@mui/material';
+import { AppBar, Toolbar } from '@mui/material';
 import { Menu, MenuItem, Tooltip, IconButton, Avatar, Divider, ListItemIcon } from '@mui/material';
 import { Logout, Settings, PersonAdd } from '@mui/icons-material';
 
@@ -21,21 +22,24 @@ export function Menubar(props: MenubarProps) {
 	};
 
 	return (<>
-		<Box sx={{display: 'flex', justifyContent: 'space-between', p: 1 }}>
-			<Typography variant="h4">Timesline</Typography>
-			<Tooltip title="Account settings">
-				<IconButton
-				onClick={handleClick}
-				size="small"
-				sx={{ ml: 2 }}
-				aria-controls={open ? 'account-menu' : undefined}
-				aria-haspopup="true"
-				aria-expanded={open ? 'true' : undefined}
-				>
-				<Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
-				</IconButton>
-			</Tooltip>
-		</Box>
+		<AppBar>
+			<Toolbar sx={{display: 'flex', justifyContent: 'space-between'}}>
+				<Typography variant="h4">Timesline</Typography>
+				<Tooltip title="Account settings">
+					<IconButton
+					onClick={handleClick}
+					size="small"
+					sx={{ ml: 2 }}
+					aria-controls={open ? 'account-menu' : undefined}
+					aria-haspopup="true"
+					aria-expanded={open ? 'true' : undefined}
+					>
+					<Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
+					</IconButton>
+				</Tooltip>
+			</Toolbar>
+		</AppBar>
+		<Toolbar/>
 		<Menu
 			anchorEl={anchorEl}
 			id="account-menu"
@@ -71,25 +75,6 @@ export function Menubar(props: MenubarProps) {
 			transformOrigin={{ horizontal: 'right', vertical: 'top' }}
 			anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
 		>
-			<MenuItem>
-				<Avatar /> Profile
-			</MenuItem>
-			<MenuItem>
-				<Avatar /> My account
-			</MenuItem>
-				<Divider />
-			<MenuItem>
-				<ListItemIcon>
-					<PersonAdd fontSize="small" />
-				</ListItemIcon>
-				Add another account
-			</MenuItem>
-			<MenuItem>
-				<ListItemIcon>
-					<Settings fontSize="small" />
-				</ListItemIcon>
-				Settings
-			</MenuItem>
 			<MenuItem onClick={() => props.session.logout()}>
 				<ListItemIcon>
 					<Logout fontSize="small" />
