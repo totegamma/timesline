@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Avatar } from '@mui/material';
+import { Box, Typography, Avatar } from '@mui/material';
 import { List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
 
 import { IuseSession } from '../hooks/useSession';
@@ -32,7 +32,7 @@ const testMessage : RawRTMMessage[] = [
 		ts: '1651292573.797389',
 		user: 'U1EC1GLF7',
 		channel: 'C03D2JHGC31',
-		text: 'メッセージ1'
+		text: 'メッセージ1メッセージ1メッセージ1メッセージ1メッセージ1メッセージ1メッセージ1メッセージ1メッセージ1'
 	},
 	{
 		type: 'message',
@@ -174,8 +174,6 @@ export function Timeline(props: TimelineProps) {
 	});
 
 
-
-
 	useEffect(() => {
 		if (props.session.wsEndpoint) {
 			const ws = new WebSocket(props.session.wsEndpoint);
@@ -194,22 +192,30 @@ export function Timeline(props: TimelineProps) {
 	}, [props.session.wsEndpoint]);
 
 
-
-
 	return (
 		<List>
 			{messages.map(e =>
-			<React.Fragment key={e.ts}>
-				<ListItem alignItems="flex-start">
-					<ListItemAvatar>
-						<Avatar alt="Profile Picture" src={e.avatar} />
-					</ListItemAvatar>
-					<ListItemText primary={e.user +  " #" +  e.channel + "   " + e.datetime} secondary={e.text} />
-				</ListItem>
-				<Divider variant="inset" component="li" />
-			</React.Fragment>
+			<ListItem key={e.ts} sx={{'display': 'block', float: 'left'}}>
+				<Box sx={{width: '48px', float: 'left'}}>
+					<Avatar alt="Profile Picture" src={e.avatar} sx={{marginTop: '5px', width: '48px', height: '48px'}} />
+				</Box>
+				<Box sx={{float: 'left', width: 'calc(100% - 48px)', paddingLeft: '10px'}}>
+					<Box sx={{clear: 'both'}}>
+						<Typography component="span" sx={{fontSize: '15px', lineHeight: '20px', fontWeight: '700'}}>{e.user}</Typography>
+						<Typography component="span" sx={{fontSize: '15px', lineHeight: '20px', fontWeight: '400'}}>
+							{" #" +  e.channel + "・" + e.datetime}
+						</Typography>
+					</Box>
+					<Box>
+						<Typography>
+							{e.text}
+						</Typography>
+					</Box>
+				</Box>
+			</ListItem>
 			)}
 		</List>
 	);
 }
+
 
