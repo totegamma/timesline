@@ -8,6 +8,7 @@ const wsURL = 'https://slack.com/api/rtm.connect';
 export interface IuseSession {
 	oauthURL: string;
 	userToken: null | string;
+	wsEndpoint: undefined | null | string;
 	login: (code: string) => void;
 	logout: () => void;
 	logined: () => boolean;
@@ -90,6 +91,7 @@ export function useSession(): IuseSession {
 	return {
 		oauthURL: oauthURL,
 		userToken: accessToken,
+		wsEndpoint: wsEndpoint,
 		login: login,
 		logout: logout,
 		logined:logined

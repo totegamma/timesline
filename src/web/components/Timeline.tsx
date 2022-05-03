@@ -23,6 +23,7 @@ interface RTMMessage {
 	channel: string;
 	text: string;
 	avatar: string;
+	datetime: string;
 }
 
 const testMessage : RawRTMMessage[] = [
@@ -103,7 +104,10 @@ export function Timeline(props: TimelineProps) {
 			const res = await fetch(endpoint_getUserInfo, requestOptions);
 			const data = await res.json();
 
-			//console.log(data);
+			if (!data.ok) {
+				console.log("resolve user failed. reason: " + data.error);
+				return {};
+			}
 
 			userDict[id] = data.user.profile;
 			setUserDict(userDict);
@@ -145,6 +149,7 @@ export function Timeline(props: TimelineProps) {
 
 
 	const addMessage = async (e: RawRTMMessage) =>{
+		const datetime = new Date(parseFloat(e.ts) * 1000);
 		const user = await ResolveUser(e.user);
 		const rec = {
 			type: e.type,
@@ -152,7 +157,8 @@ export function Timeline(props: TimelineProps) {
 			user: user.display_name,
 			channel: (await ResolveChannel(e.channel)).name,
 			text: e.text,
-			avatar: user.image_192
+			avatar: user.image_192,
+			datetime: datetime.toLocaleString()
 		};
 		console.log("addMessage");
 		setMessages((old) => [...old, rec]);
@@ -170,21 +176,22 @@ export function Timeline(props: TimelineProps) {
 
 
 
-	/*
 	useEffect(() => {
-		if (wsEndpoint) {
-			const ws = new WebSocket(wsEndpoint);
+		if (props.session.wsEndpoint) {
+			const ws = new WebSocket(props.session.wsEndpoint);
 			ws.onmessage = (event: any) => {
 				const body = JSON.parse(event.data);
 				console.log(body);
-				if (body.envelope_id) {
-					console.log("replied!");
-					ws.send(JSON.stringify({envelope_id: body.envelope_id}));
+				switch (body.type) {
+					case 'message':
+						addMessage(body);
+						break;
+					default:
+					break;
 				}
 			};
 		}
-	}, [wsEndpoint]);
-	*/
+	}, [props.session.wsEndpoint]);
 
 
 
@@ -197,7 +204,7 @@ export function Timeline(props: TimelineProps) {
 					<ListItemAvatar>
 						<Avatar alt="Profile Picture" src={e.avatar} />
 					</ListItemAvatar>
-					<ListItemText primary={e.user} secondary={e.text} />
+					<ListItemText primary={e.user +  " #" +  e.channel + "   " + e.datetime} secondary={e.text} />
 				</ListItem>
 				<Divider variant="inset" component="li" />
 			</React.Fragment>
