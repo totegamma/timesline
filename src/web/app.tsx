@@ -33,7 +33,7 @@ const App = () => {
 				<Menubar {...{session: session}}></Menubar>
 				<Box sx={{flexGrow: 1}}>
 					{ session.logined() ? 
-						<Timeline {...{session: session}}></Timeline> 
+						<Timeline {...{ipc: ipcRenderer, session: session}}></Timeline> 
 						: <Login {...{ipc: ipcRenderer, session: session}}></Login> }
 				</Box>
 			</Paper>

@@ -9,6 +9,7 @@ import { IuseSession } from '../hooks/useSession';
 
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
 const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
+const endpoint_getPermalink = 'https://slack.com/api/chat.getPermalink';
 
 interface Reaction {
 	key: string;
@@ -130,6 +131,7 @@ const testMessage : any[] = [
 ]
 
 export interface TimelineProps {
+	ipc: any,
 	session: IuseSession
 }
 
@@ -288,6 +290,27 @@ export function Timeline(props: TimelineProps) {
 		console.log("re-rendered!");
 	});
 
+	const openInSlack = async (channelID: string, ts: string) => {
+		const requestOptions = {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded',
+				'authorization': 'Bearer ' + props.session.userToken
+			},
+			body: `channel=${channelID}&message_ts=${ts}`
+		};
+
+		const res = await fetch(endpoint_getPermalink, requestOptions);
+		const data = await res.json();
+
+		if (!data.ok) {
+			console.log("get permalink failed. reason: " + data.error);
+			return;
+		}
+
+		props.ipc.send("openExternal", data.permalink)
+	}
+
 
 
 	return (
@@ -322,7 +345,7 @@ export function Timeline(props: TimelineProps) {
 								)}
 							</Box>
 							<Box>
-								<IconButton aria-label='open in slack' size='small'>
+								<IconButton aria-label='open in slack' size='small' onClick={() => openInSlack(e.channelID, e.ts)}>
 									<LaunchIcon fontSize="inherit" />
 								</IconButton>
 							</Box>
