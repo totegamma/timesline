@@ -31,6 +31,7 @@ export function Menubar(props: MenubarProps) {
 				<Logo/>
 				</Icon>
 				<Typography variant="h4" sx={{flex: 1}}>Timesline</Typography>
+				{props.session.logined() &&
 				<Tooltip title="Account settings">
 					<IconButton
 					onClick={handleClick}
@@ -43,6 +44,7 @@ export function Menubar(props: MenubarProps) {
 					<Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
 					</IconButton>
 				</Tooltip>
+				}
 			</Toolbar>
 		</AppBar>
 		<Toolbar/>
