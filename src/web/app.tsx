@@ -29,9 +29,9 @@ const App = () => {
 	return (<>
 		<ThemeProvider theme={darkTheme}>
 			<CssBaseline />
-			<Paper square sx={{ display: 'flex', flexDirection: 'column' }}>
+			<Paper square sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
 				<Menubar {...{session: session}}></Menubar>
-				<Box sx={{flexGrow: 1}}>
+				<Box sx={{display: 'flex', flexGrow: 1}}>
 					{ session.logined() ? 
 						<Timeline {...{ipc: ipcRenderer, session: session}}></Timeline> 
 						: <Login {...{ipc: ipcRenderer, session: session}}></Login> }
