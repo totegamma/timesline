@@ -159,10 +159,10 @@ export function Timeline(props: TimelineProps) {
 	const ResolveUser = async (id: string) => {
 
 		if (id in userDict) {
-			console.log("resolve user from cache");
+			console.info("resolve user from cache");
 			return userDict[id];
 		} else {
-			console.log("resolve user from API");
+			console.info("resolve user from API");
 			const requestOptions = {
 				method: 'POST',
 				headers: {
@@ -176,7 +176,7 @@ export function Timeline(props: TimelineProps) {
 			const data = await res.json();
 
 			if (!data.ok) {
-				console.log("resolve user failed. reason: " + data.error);
+				console.error("resolve user failed. reason: " + data.error);
 				return {};
 			}
 
@@ -191,10 +191,10 @@ export function Timeline(props: TimelineProps) {
 	const ResolveChannel = async (id: string) => {
 
 		if (id in channelDict) {
-			console.log("resolve channel from cache");
+			console.info("resolve channel from cache");
 			return channelDict[id];
 		} else {
-			console.log("resovle channel from API");
+			console.info("resovle channel from API");
 			const requestOptions = {
 				method: 'POST',
 				headers: {
@@ -206,8 +206,6 @@ export function Timeline(props: TimelineProps) {
 
 			const res = await fetch(endpoint_getChannelInfo, requestOptions);
 			const data = await res.json();
-
-			//console.log(data);
 
 			channelDict[id] = data.channel;
 			setChannelDict(channelDict);
@@ -234,13 +232,13 @@ export function Timeline(props: TimelineProps) {
 			datetime: datetime.toLocaleString(),
 			reactions: []
 		};
-		console.log("addMessage");
+		console.info("addMessage");
 		setMessages((old) => [...old, rec].sort((a, b) => b.ts_number - a.ts_number)); // TODO: replace sort to splice
 	}
 
 
 	const addReaction = (e: RawRTMMessage) => {
-		console.log("addReaction");
+		console.info("addReaction");
 
 		setMessages(old => {
 			let update = [...old]; // TODO: should be rewrite
@@ -307,10 +305,9 @@ export function Timeline(props: TimelineProps) {
 		.then(res => res.json())
 		.then(data => {
 			if (data.ok){
-				console.log(data);
 				setEmojiDict(data.emoji);
 			} else {
-				console.log("failed to get emoji list");
+				console.error("failed to get emoji list");
 			}
 		});
 
@@ -319,7 +316,7 @@ export function Timeline(props: TimelineProps) {
 
 
 	useEffect(() => {
-		console.log("re-rendered!");
+		console.info("re-rendered!");
 	});
 
 	const openInSlack = async (channelID: string, ts: string) => {
@@ -336,7 +333,7 @@ export function Timeline(props: TimelineProps) {
 		const data = await res.json();
 
 		if (!data.ok) {
-			console.log("get permalink failed. reason: " + data.error);
+			console.error("get permalink failed. reason: " + data.error);
 			return;
 		}
 

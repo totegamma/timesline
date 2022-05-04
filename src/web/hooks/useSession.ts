@@ -45,11 +45,10 @@ export function useSession(): IuseSession {
 			fetch(accessURL, requestOptions)
 				.then(response => response.json())
 				.then(data => {
-					console.log(data);
 					if (data.ok) {
 						setAccessToken(data.access_token);
 					} else {
-						console.log("connection failed. reason: " + data.error);
+						console.error("connection failed. reason: " + data.error);
 					}
 				});
 		}
@@ -73,10 +72,9 @@ export function useSession(): IuseSession {
 					if (data.ok) {
 						setWsEndpoint(data.url);
 						setUserID(data.self.id);
-						console.info(data.self.id);
 						//setUsername(data.self.name);
 					} else {
-						console.log("connection failed. reason: " + data.error);
+						console.error("connection failed. reason: " + data.error);
 					}
 				});
 		}
