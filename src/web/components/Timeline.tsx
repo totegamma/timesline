@@ -27,6 +27,7 @@ interface RawRTMMessage {
 	text: string;
 	reaction: string;
 	item: any;
+	thread_ts: string;
 }
 
 interface RTMMessage {
@@ -38,8 +39,10 @@ interface RTMMessage {
 	channelID: string;
 	text: string;
 	avatar: string;
+	parent: string;
 	datetime: string;
 	reactions: Reaction[];
+	thread: RTMMessage[];
 }
 
 const testMessage : any[] = [
@@ -55,7 +58,8 @@ const testMessage : any[] = [
 		ts: '1651292573.797390',
 		user: 'U1EC1GLF7',
 		channel: 'C03D2JHGC31',
-		text: 'メッセージ2'
+		text: 'メッセージ2',
+		thread_ts: '1651292573.797389'
 	},
 	{
 		type: 'message',
@@ -230,7 +234,9 @@ export function Timeline(props: TimelineProps) {
 			text: e.text,
 			avatar: user.image_192,
 			datetime: datetime.toLocaleString(),
-			reactions: []
+			parent: e.thread_ts,
+			reactions: [],
+			thread: []
 		};
 		console.info("addMessage");
 		setMessages((old) => [...old, rec].sort((a, b) => b.ts_number - a.ts_number)); // TODO: replace sort to splice
@@ -266,6 +272,7 @@ export function Timeline(props: TimelineProps) {
 	const handleMessage = (body: any) => {
 		switch (body.type) {
 			case 'message':
+				if (body.subtype) return;
 				addMessage(body);
 				break;
 			case 'reaction_added':
@@ -340,11 +347,26 @@ export function Timeline(props: TimelineProps) {
 		props.ipc.send("openExternal", data.permalink)
 	}
 
+	const constructThread = (input: RTMMessage[]) => {
+		const output: RTMMessage[] = [];
+		for (var i = input.length-1; i >= 0; i--) {
+			if (input[i].parent) {
+				const target = output.find(a => a.ts == input[i].parent);
+				if (target) target.thread.push(input[i]);
+				else console.warn("thread resolve failed");
+			} else {
+				input[i].thread = [];
+				output.push(input[i]);
+			}
+		}
+		output.reverse();
+		return output;
+	}
 
 
 	return (
 		<List>
-			{messages.map(e =>
+			{constructThread(messages).map(e =>
 			<React.Fragment key={e.ts}>
 				<ListItem sx={{alignItems: 'flex-start', flex: 1}}>
 					<Box sx={{width: '48px', mr: '12px'}}>
@@ -354,7 +376,7 @@ export function Timeline(props: TimelineProps) {
 						<Box>
 							<Typography component="span" sx={{fontWeight: '700'}}>{e.user}</Typography>
 							<Typography component="span" sx={{fontWeight: '400'}}>
-								{" #" +  e.channel + "・" + e.datetime}
+								{` #${e.channel}・${e.datetime} (${e.thread.length})`}
 							</Typography>
 						</Box>
 						<Box>
