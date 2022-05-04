@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Box } from '@mui/material';
-import { AppBar, Toolbar, SvgIcon } from '@mui/material';
+import { AppBar, Toolbar, Icon } from '@mui/material';
 import { Menu, MenuItem, Tooltip, IconButton, Avatar, Divider, ListItemIcon } from '@mui/material';
 import { Logout, Settings, PersonAdd } from '@mui/icons-material';
 
-import Logo from '../resources/logo.svg';
+import { ReactComponent as Logo } from '../resources/logo.svg';
 
 import { IuseSession } from '../hooks/useSession';
 
@@ -27,7 +27,9 @@ export function Menubar(props: MenubarProps) {
 	return (<>
 		<AppBar>
 			<Toolbar sx={{display: 'flex'}}>
-				<Box component="img" src={Logo} sx={{width: '40px', height: '40px', mr: '10px'}} />
+				<Icon sx={{width: '40px', height: '40px', mr: '10px'}}>
+				<Logo/>
+				</Icon>
 				<Typography variant="h4" sx={{flex: 1}}>Timesline</Typography>
 				<Tooltip title="Account settings">
 					<IconButton

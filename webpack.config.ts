@@ -70,12 +70,38 @@ const common: Configuration = {
       },
       {
         // 画像やフォントなどのアセット類
-        test: /\.(ico|png|jpe?g|svg|eot|woff?2?)$/,
+        test: /\.(ico|png|jpe?g|eot|woff?2?)$/,
         /**
          * アセット類も同様に asset/inline は使用しない
          * なお、webpack@5.x では file-loader or url-loader は不要になった
          */
         type: 'asset/resource',
+      },
+      {
+        test: /\.svg$/,
+        use: [
+          {
+            loader: require.resolve('@svgr/webpack'),
+            options: {
+              prettier: false,
+              svgo: false,
+              svgoConfig: {
+                plugins: [{ removeViewBox: false }],
+              },
+              titleProp: true,
+              ref: true,
+            },
+          },
+          {
+            loader: require.resolve('file-loader'),
+            options: {
+              name: 'static/media/[name].[hash].[ext]',
+            },
+          },
+        ],
+        issuer: {
+          and: [/\.(ts|tsx|js|jsx|md|mdx)$/],
+        },
       },
     ],
   },
