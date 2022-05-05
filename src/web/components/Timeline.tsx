@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Avatar, Chip, IconButton } from '@mui/material';
+import { Box, Typography, Avatar, Chip, IconButton, StepConnector } from '@mui/material';
 import { List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
 const Emoji = require('node-emoji');
 
@@ -369,6 +369,10 @@ export function Timeline(props: TimelineProps) {
 			{constructThread(messages).map(e =>
 			<React.Fragment key={e.ts}>
 				<ListItem sx={{alignItems: 'flex-start', flex: 1}}>
+					<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+						<Box sx={{width: '0', height: '38px', border: '2px solid #777'}}></Box>
+						<Box sx={{width: '0', flex: 1, border: '2px solid #777'}}></Box>
+					</Box>
 					<Box sx={{width: '48px', mr: '12px'}}>
 						<Avatar alt="Profile Picture" src={e.avatar} sx={{marginTop: '5px', width: '48px', height: '48px'}} />
 					</Box>
@@ -386,7 +390,7 @@ export function Timeline(props: TimelineProps) {
 						</Box>
 						<Box sx={{display: 'flex', flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
 							<Box sx={{flex: 1}}>
-								{e.reactions.map((data) => 
+								{e.reactions.map((data) =>
 									<Chip
 										key={data.key}
 										size='small'
