@@ -1,8 +1,6 @@
 import React, {ReactNode} from 'react';
 import { ListItem, Box, Avatar, Typography, IconButton, Link } from '@mui/material';
 
-import LaunchIcon from '@mui/icons-material/Launch';
-
 import { Reaction, ReactionListProps, ReactionList } from './ReactionList';
 import { RTMMessage } from './Timeline';
 
@@ -22,11 +20,14 @@ function Template(props: TweetProps & {children?: ReactNode}){
 			<Box sx={{width: '48px', mr: '12px'}}>
 				<Avatar alt="Profile Picture" src={props.message.avatar} sx={{marginTop: '5px', width: '48px', height: '48px'}} />
 			</Box>
-			<Box sx={{display: 'flex', flex: 1, flexDirection: 'column', pr: '15px'}}>
+			<Box sx={{display: 'flex', flex: 1, flexDirection: 'column'}}>
 				<Box>
 					<Typography component="span" sx={{fontWeight: '700'}}>{props.message.user}</Typography>
 					<Typography component="span" sx={{fontWeight: '400'}}>
-						{` #${props.message.channel}・${props.message.datetime}`}
+						{` #${props.message.channel}・`}
+						<Link component="button" underline="hover" color="inherit" onClick={() => props.openExternal(props.message.channelID, props.message.ts)}>
+							{props.message.datetime}
+						</Link>
 					</Typography>
 				</Box>
 				<Box>
@@ -35,11 +36,6 @@ function Template(props: TweetProps & {children?: ReactNode}){
 					</Typography>
 				</Box>
 				<ReactionList reactions={props.message.reactions} emojiDict={props.emojiDict} />
-			</Box>
-			<Box sx={{position: 'absolute', right: '5px', bottom: '6px'}}>
-				<IconButton aria-label='open in slack' size='small' onClick={() => props.openExternal(props.message.channelID, props.message.ts)}>
-					<LaunchIcon fontSize="inherit" />
-				</IconButton>
 			</Box>
 		</ListItem>
 	)
@@ -109,7 +105,7 @@ export function TweetWithMoreThan3Reply(props: TweetProps) {
 				<Box sx={{width: '0', flex: 1, border: '1.5px dashed #333639'}}></Box>
 			</Box>
 			<Box sx={{width: '48px', mr: '12px'}}></Box>
-			<Link component="button" color='primary' onClick={() => props.openExternal(props.message.channelID, props.message.ts)} sx={{textDecoration: 'none'}}>
+			<Link component="button" underline='hover' color='primary' onClick={() => props.openExternal(props.message.channelID, props.message.ts)}>
 				返信をさらに表示
 			</Link>
 		</ListItem>
