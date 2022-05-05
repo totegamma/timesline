@@ -10,7 +10,16 @@ import { useSession, IuseSession } from './hooks/useSession';
 import { useResourceManager, IuseResourceManager } from './hooks/useResourceManager';
 import { useObjectList, IuseObjectList } from './hooks/useObjectList';
 
-import { UserPref, RTMMessage } from './model';
+import { UserPref, RTMMessage, RawRTMMessage } from './model';
+
+import { testMessage } from './resources/testItem';
+
+
+const ChannelFilter = (channelName: string) => {
+	return channelName[0] == '_';
+}
+
+const ShowTestMessage = false;
 
 
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
@@ -36,54 +45,70 @@ const darkTheme = createTheme({
 
 const App = () => {
 
+	// =========================:: STATEs ::===============================
+
 	const session: IuseSession = useSession();
-	//const [messages, setMessages] = useState<RTMMessage[]>([]);
 	const messages = useObjectList<RTMMessage>();
 
 	const [avatar, setAvatar] = useState<undefined | string>();
 	const [channels, setChannels] = useState<string[]>([]);
 
 	const userDict = useResourceManager<any>(async (key: string) => {
-			const res = await fetch(endpoint_getUserInfo, {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/x-www-form-urlencoded',
-					'authorization': 'Bearer ' + session.userToken
-				},
-				body: `user=${key}`
-			});
-			const data = await res.json();
+		const res = await fetch(endpoint_getUserInfo, {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded',
+				'authorization': 'Bearer ' + session.userToken
+			},
+			body: `user=${key}`
+		});
+		const data = await res.json();
 
-			if (!data.ok) {
-				console.error("resolve user failed. reason: " + data.error);
-				return {};
-			}
+		if (!data.ok) {
+			console.error("resolve user failed. reason: " + data.error);
+			return {};
+		}
 
-			return data.user.profile;
+		return data.user.profile;
 	});
 
 
 	const channelDict = useResourceManager<any>(async (key: string) => {
-			const res = await fetch(endpoint_getChannelInfo, {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/x-www-form-urlencoded',
-					'authorization': 'Bearer ' + session.userToken
-				},
-				body: `channel=${key}`
+		const res = await fetch(endpoint_getChannelInfo, {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded',
+				'authorization': 'Bearer ' + session.userToken
+			},
+			body: `channel=${key}`
 
-			});
-			const data = await res.json();
+		});
+		const data = await res.json();
 
-			if (!data.ok) {
-				console.error("resolve channel failed. reason: " + data.error);
-				return {};
-			}
+		if (!data.ok) {
+			console.error("resolve channel failed. reason: " + data.error);
+			return {};
+		}
 
-			return data.channel;
+		return data.channel;
 	});
 
 
+
+	// =========================:: EFFECTs ::===============================
+
+	// WSのURLが分かり次第接続開始
+	useEffect(() => {
+		if (session.wsEndpoint) {
+			const ws = new WebSocket(session.wsEndpoint);
+			ws.onmessage = (event: any) => {
+				const body = JSON.parse(event.data);
+				handleMessage(body);
+			}
+		}
+	}, [session.wsEndpoint]);
+
+	// useSessionで接続成功(userIDが取得された)したら追加の情報を取得
 	useEffect(() => {
 		if (session.userID) {
 			const requestOptions = {
@@ -116,11 +141,92 @@ const App = () => {
 			.then(response => response.json())
 			.then(data => {
 				data.channels.forEach((e: any) => channelDict.register(e.id, e));
-				setChannels(data.channels.map((e: any) => e.id)); // TODO: pagenate is required to get over 100 channels
+				setChannels(data.channels.filter((e: any) => ChannelFilter(e.name)).map((e: any) => e.id)); // TODO: pagenate is required to get over 100 channels
 			});
+
+			if (ShowTestMessage) testMessage.forEach((e, i) => setTimeout(handleMessage, i*250, e));
 		}
 	}, [session.userID]);
 
+
+
+	// =========================:: LOGICs ::===============================
+
+
+	// 着信メッセージ処理系
+
+	const addMessage = async (e: RawRTMMessage) => {
+		const channelName = (await channelDict.get(e.channel)).name;
+		if (!ChannelFilter(channelName)) return;
+		const datetime = new Date(parseFloat(e.ts) * 1000);
+		const user = await userDict.get(e.user);
+		const rec = {
+			type: e.type,
+			ts: e.ts,
+			ts_number: parseFloat(e.ts),
+			last_activity: parseFloat(e.ts),
+			user: user.display_name,
+			channel: channelName,
+			channelID: e.channel,
+			text: e.text,
+			avatar: user.image_192,
+			datetime: datetime.toLocaleString(),
+			reactions: [],
+			thread: [],
+			parent: e.thread_ts,
+			has_unloadedThread: false
+		};
+		console.info("addMessage");
+		messages.push(rec);
+	}
+
+
+	const addReaction = (e: RawRTMMessage) => {
+		console.info("addReaction");
+
+		messages.update(old => {
+			let update = [...old]; // TODO: should be rewrite
+			const targetmsg = update.find(a => a.channelID == e.item.channel && a.ts == e.item.ts);
+			if (targetmsg){
+				const targetreaction = targetmsg.reactions.find(a => a.key == e.reaction);
+				if (targetreaction) {
+					targetreaction.count++;
+				} else {
+					targetmsg.reactions.push({
+						key: e.reaction,
+						count: 1
+					});
+				}
+			}
+			return update;
+		});
+
+	}
+
+	const removeReaction = (e: RawRTMMessage) => {
+	}
+
+	const handleMessage = (body: any) => {
+		switch (body.type) {
+			case 'message':
+				if (body.subtype) return;
+				addMessage(body);
+				break;
+			case 'reaction_added':
+				addReaction(body);
+				break;
+			case 'reaction_removed':
+				removeReaction(body);
+				break;
+			default:
+			break;
+		}
+	}
+
+
+
+
+	// 履歴取得系
 	const hist2msg = async (e: any, channel: string, channelID: string) =>{
 		const datetime = new Date(parseFloat(e.ts) * 1000);
 		const user = await userDict.get(e.user);
@@ -147,7 +253,6 @@ const App = () => {
 		messages.clear();
 
 		channels.forEach(channelID => {
-			if (channelDict.current[channelID].name == "secrettest")
 			fetch(endpoint_getHistory, {
 				method: 'POST',
 				headers: {
@@ -173,6 +278,10 @@ const App = () => {
 			});
 		});
 	}
+
+
+	// =========================:: VIEW ::===============================
+
 
 	return (<>
 		<ThemeProvider theme={darkTheme}>
