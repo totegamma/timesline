@@ -162,10 +162,8 @@ export function Timeline(props: TimelineProps) {
 	const [messages, setMessages] = useState<RTMMessage[]>([]); // TODO: should be custom hook
 
 	const emojiDict = useRef<{ [key: string]: string}>({});
-	//const userDict = useRef<{ [id: string]: object}>({});
-	const channelDict = useRef<{ [id: string]: object}>({});
 
-	const userDict = useResourceManager<object>(async (key: string) => {
+	const userDict = useResourceManager<any>(async (key: string) => {
 			const res = await fetch(endpoint_getUserInfo, {
 				method: 'POST',
 				headers: {
@@ -185,74 +183,37 @@ export function Timeline(props: TimelineProps) {
 	});
 
 
-
-	const ResolveUser = async (id: string) => {
-
-		if (id in userDict.current) {
-			return userDict.current[id];
-		} else {
-			console.info("resolve user from API");
-			const requestOptions = {
+	const channelDict = useResourceManager<any>(async (key: string) => {
+			const res = await fetch(endpoint_getChannelInfo, {
 				method: 'POST',
 				headers: {
 					'content-type': 'application/x-www-form-urlencoded',
 					'authorization': 'Bearer ' + props.session.userToken
 				},
-				body: `user=${id}`
-			};
+				body: `channel=${key}`
 
-			const res = await fetch(endpoint_getUserInfo, requestOptions);
+			});
 			const data = await res.json();
 
 			if (!data.ok) {
-				console.error("resolve user failed. reason: " + data.error);
+				console.error("resolve channel failed. reason: " + data.error);
 				return {};
 			}
 
-			userDict.current[id] = data.user.profile;
-
-			return data.user.profile;
-		}
-
-	}
-
-	const ResolveChannel = async (id: string) => {
-
-		if (id in channelDict.current) {
-			return channelDict.current[id];
-		} else {
-			console.info("resovle channel from API");
-			const requestOptions = {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/x-www-form-urlencoded',
-					'authorization': 'Bearer ' + props.session.userToken
-				},
-				body: `channel=${id}`
-			};
-
-			const res = await fetch(endpoint_getChannelInfo, requestOptions);
-			const data = await res.json();
-
-			channelDict.current[id] = data.channel;
-
 			return data.channel;
-		}
-
-
-	}
+	});
 
 
 	const addMessage = async (e: RawRTMMessage) =>{
 		const datetime = new Date(parseFloat(e.ts) * 1000);
-		const user = await ResolveUser(e.user);
+		const user = await userDict.get(e.user);
 		const rec = {
 			type: e.type,
 			ts: e.ts,
 			ts_number: parseFloat(e.ts),
 			last_activity: parseFloat(e.ts),
 			user: user.display_name,
-			channel: (await ResolveChannel(e.channel))?.name ?? "ERROR",
+			channel: (await channelDict.get(e.channel)).name ?? "ERROR",
 			channelID: e.channel,
 			text: e.text,
 			avatar: user.image_192,
