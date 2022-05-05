@@ -112,6 +112,7 @@ const App = () => {
 			})
 			.then(response => response.json())
 			.then(data => {
+				data.channels.forEach((e: any) => channelDict.register(e.id, e));
 				setChannels(data.channels.map((e: any) => e.id)); // TODO: pagenate is required to get over 100 channels
 			});
 		}
@@ -126,7 +127,7 @@ const App = () => {
 				<Menubar session={session} userPref={{avatar: avatar, joinedChannels: channels}}></Menubar>
 				<Box sx={{display: 'flex', flexGrow: 1}}>
 					{ session.logined() ? 
-						<Timeline ipc={ipcRenderer} session={session} userDict={userDict} channelDict={channelDict}></Timeline> 
+						<Timeline ipc={ipcRenderer} session={session} userDict={userDict} channelDict={channelDict} userPref={{avatar: avatar, joinedChannels: channels}}></Timeline> 
 						: <Login ipc={ipcRenderer} session={session}></Login> }
 				</Box>
 			</Paper>

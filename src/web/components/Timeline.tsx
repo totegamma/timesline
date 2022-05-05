@@ -7,7 +7,7 @@ import { TweetProps, Tweet, TweetWith1Reply, TweetWith2Reply, TweetWithMoreThan3
 import { Reaction } from './ReactionList';
 import { IuseSession } from '../hooks/useSession';
 import { IuseResourceManager } from '../hooks/useResourceManager';
-
+import { UserPref } from '../app';
 
 const endpoint_getEmojiList = 'https://slack.com/api/emoji.list';
 const endpoint_getPermalink = 'https://slack.com/api/chat.getPermalink';
@@ -34,10 +34,11 @@ export interface RTMMessage {
 	channelID: string;
 	text: string;
 	avatar: string;
-	parent: string;
+	parent: null | string;
 	datetime: string;
 	reactions: Reaction[];
 	thread: RTMMessage[];
+	has_unloadedThread: boolean;
 }
 
 const testMessage : any[] = [
@@ -153,6 +154,7 @@ const testMessage : any[] = [
 export interface TimelineProps {
 	ipc: any,
 	session: IuseSession,
+	userPref: UserPref,
 	userDict: IuseResourceManager<any>,
 	channelDict:IuseResourceManager<any>
 }
@@ -177,12 +179,13 @@ export function Timeline(props: TimelineProps) {
 			text: e.text,
 			avatar: user.image_192,
 			datetime: datetime.toLocaleString(),
-			parent: e.thread_ts,
 			reactions: [],
-			thread: []
+			thread: [],
+			parent: e.thread_ts,
+			has_unloadedThread: false
 		};
 		console.info("addMessage");
-		setMessages((old) => [...old, rec].sort((a, b) => b.ts_number - a.ts_number)); // TODO: replace sort to splice
+		setMessages((old) => [...old, rec]);
 	}
 
 
@@ -199,8 +202,7 @@ export function Timeline(props: TimelineProps) {
 				} else {
 					targetmsg.reactions.push({
 						key: e.reaction,
-						count: 1,
-						image: ""
+						count: 1
 					});
 				}
 			}
@@ -242,7 +244,7 @@ export function Timeline(props: TimelineProps) {
 
 
 	useEffect(() =>  {
-
+		console.warn('timeline loaded');
 
 		const requestOptions = {
 			method: 'POST',
@@ -261,14 +263,38 @@ export function Timeline(props: TimelineProps) {
 			}
 		});
 
-
-		testMessage.forEach((e, i) => setTimeout(handleMessage, i*250, e));
+		//testMessage.forEach((e, i) => setTimeout(handleMessage, i*250, e));
 	}, []);
+
+
+
+
+	const hist2msg = async (e: any, channel: string, channelID: string) =>{
+		const datetime = new Date(parseFloat(e.ts) * 1000);
+		const user = await props.userDict.get(e.user);
+		return {
+			type: e.type,
+			ts: e.ts,
+			ts_number: parseFloat(e.ts),
+			last_activity: parseFloat(e.ts),
+			user: user.display_name,
+			channel: channel,
+			channelID: channelID,
+			text: e.text,
+			avatar: user.image_192,
+			datetime: datetime.toLocaleString(),
+			parent: undefined,
+			reactions: e.reactions?.map((reaction: any) => ({key: reaction.name, count: reaction.count})) ?? [],
+			thread: [],
+			has_unloadedThread: ('thread_ts' in e)
+		};
+	}
 
 /*
 	useEffect(() => {
-		if (props.session.joinedChannels) {
-			props.session.joinedChannels.forEach(channelID => {
+		if (props.userPref.joinedChannels) {
+			props.userPref.joinedChannels.forEach(channelID => {
+				//if (props.channelDict.current[channelID].name == "secrettest")
 				fetch(endpoint_getHistory, {
 					method: 'POST',
 					headers: {
@@ -280,19 +306,21 @@ export function Timeline(props: TimelineProps) {
 				.then(res => res.json())
 				.then(data => {
 					if (data.ok){
-						console.log(data);
-						//data.messages.forEach((e:any, i: number) => console.log(e));
-						data.messages.forEach((e: any, i: number) => {
-							e['channel'] = channelID;
-							setTimeout(handleMessage, i*500, e);
-						});
+						(async () => {
+							const newmsg = await Promise.all(
+								data.messages.map(
+									(e: any) => hist2msg(e, props.channelDict.current[channelID].name, channelID)
+								)
+							);
+							setMessages((old: any) => [...old, ...newmsg]);
+						})();
 					} else {
 						console.error("failed to history. reason:" + data.error);
 					}
 				});
 			});
 		}
-	}, [props.session.joinedChannels]);
+	}, [props.userPref.joinedChannels]);
 	*/
 
 
@@ -324,6 +352,7 @@ export function Timeline(props: TimelineProps) {
 	const constructThread = (input: RTMMessage[]) => {
 		const output: RTMMessage[] = [];
 		input.sort((a, b) => a.ts_number - b.ts_number)
+		//console.log(input);
 		for (var i in input) {
 			if (input[i].parent) {
 				const target = output.find(a => a.ts == input[i].parent);
@@ -332,7 +361,7 @@ export function Timeline(props: TimelineProps) {
 					target.thread.push(input[i]);
 				} else {
 					console.warn("thread resolve failed");
-					input[i].user = `(reply)${input[i].user}`;
+					input[i].has_unloadedThread = true;
 					input[i].thread = [];
 					input[i].last_activity = parseFloat(input[i].ts),
 					output.push(input[i]);
@@ -344,6 +373,7 @@ export function Timeline(props: TimelineProps) {
 			}
 		}
 		output.sort((a, b) => b.last_activity - a.last_activity)
+		//console.log(output);
 		return output;
 	}
 

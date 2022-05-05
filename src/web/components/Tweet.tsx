@@ -39,14 +39,23 @@ function Template(props: TweetProps & {children?: ReactNode}){
 			</Box>
 		</ListItem>
 	)
-
 }
 
 
 export function Tweet(props: TweetProps) {
-	return (
+	return (<>
 		<Template {...props} />
-	)
+		{props.message.has_unloadedThread &&
+		<ListItem sx={{alignItems: 'flex-start', flex: 1}}>
+			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+			</Box>
+			<Box sx={{width: '48px', mr: '12px'}}></Box>
+			<Link component="button" underline='hover' color='primary' onClick={() => props.openExternal(props.message.channelID, props.message.ts)}>
+				このスレッドを表示
+			</Link>
+		</ListItem>
+		}
+	</>)
 }
 
 export function TweetWith1Reply(props: TweetProps) {

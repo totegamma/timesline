@@ -5,7 +5,6 @@ const Emoji = require('node-emoji');
 export interface Reaction {
 	key: string;
 	count: number;
-	image: string;
 }
 
 export interface ReactionListProps {
