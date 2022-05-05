@@ -8,6 +8,10 @@ import { Timeline } from './components/Timeline';
 import { Login } from './components/Login';
 import { useSession, IuseSession } from './hooks/useSession';
 import { useResourceManager, IuseResourceManager } from './hooks/useResourceManager';
+import { useObjectList, IuseObjectList } from './hooks/useObjectList';
+
+import { UserPref, RTMMessage } from './model';
+
 
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
 const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
@@ -27,15 +31,12 @@ const darkTheme = createTheme({
 	}
 });
 
-export interface UserPref {
-	avatar: undefined | string;
-	joinedChannels: string[];
-}
-
 
 const App = () => {
 
 	const session: IuseSession = useSession();
+	//const [messages, setMessages] = useState<RTMMessage[]>([]);
+	const messages = useObjectList<RTMMessage>();
 
 	const [avatar, setAvatar] = useState<undefined | string>();
 	const [channels, setChannels] = useState<string[]>([]);
@@ -118,6 +119,60 @@ const App = () => {
 		}
 	}, [session.userID]);
 
+	const hist2msg = async (e: any, channel: string, channelID: string) =>{
+		const datetime = new Date(parseFloat(e.ts) * 1000);
+		const user = await userDict.get(e.user);
+		return {
+			type: e.type,
+			ts: e.ts,
+			ts_number: parseFloat(e.ts),
+			last_activity: parseFloat(e.ts),
+			user: user.display_name,
+			channel: channel,
+			channelID: channelID,
+			text: e.text,
+			avatar: user.image_192,
+			datetime: datetime.toLocaleString(),
+			parent: undefined,
+			reactions: e.reactions?.map((reaction: any) => ({key: reaction.name, count: reaction.count})) ?? [],
+			thread: [],
+			has_unloadedThread: ('thread_ts' in e)
+		};
+	}
+
+/*
+	useEffect(() => {
+		if (props.userPref.joinedChannels) {
+			props.userPref.joinedChannels.forEach(channelID => {
+				//if (props.channelDict.current[channelID].name == "secrettest")
+				fetch(endpoint_getHistory, {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/x-www-form-urlencoded',
+						'authorization': 'Bearer ' + props.session.userToken
+					},
+					body: `channel=${channelID}&limit=${10}`
+				})
+				.then(res => res.json())
+				.then(data => {
+					if (data.ok){
+						(async () => {
+							const newmsg = await Promise.all(
+								data.messages.map(
+									(e: any) => hist2msg(e, props.channelDict.current[channelID].name, channelID)
+								)
+							);
+							setMessages((old: any) => [...old, ...newmsg]);
+						})();
+					} else {
+						console.error("failed to history. reason:" + data.error);
+					}
+				});
+			});
+		}
+	}, [props.userPref.joinedChannels]);
+	*/
+
 
 
 	return (<>
@@ -127,8 +182,14 @@ const App = () => {
 				<Menubar session={session} userPref={{avatar: avatar, joinedChannels: channels}}></Menubar>
 				<Box sx={{display: 'flex', flexGrow: 1}}>
 					{ session.logined() ? 
-						<Timeline ipc={ipcRenderer} session={session} userDict={userDict} channelDict={channelDict} userPref={{avatar: avatar, joinedChannels: channels}}></Timeline> 
-						: <Login ipc={ipcRenderer} session={session}></Login> }
+						<Timeline ipc={ipcRenderer}
+								  session={session}
+								  messages={messages}
+								  userDict={userDict}
+								  channelDict={channelDict} 
+								  userPref={{avatar: avatar, joinedChannels: channels}}/>
+						:
+						<Login ipc={ipcRenderer} session={session}></Login> }
 				</Box>
 			</Paper>
 		</ThemeProvider>

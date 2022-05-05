@@ -1,8 +1,8 @@
 import React, {ReactNode} from 'react';
 import { ListItem, Box, Avatar, Typography, IconButton, Link } from '@mui/material';
 
-import { Reaction, ReactionListProps, ReactionList } from './ReactionList';
-import { RTMMessage } from './Timeline';
+import { ReactionListProps, ReactionList } from './ReactionList';
+import { Reaction, RTMMessage } from '../model';
 
 
 

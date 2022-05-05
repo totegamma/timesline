@@ -1,11 +1,9 @@
 import React from 'react';
 import {Box, Chip, Avatar, Typography, IconButton} from '@mui/material';
-const Emoji = require('node-emoji');
 
-export interface Reaction {
-	key: string;
-	count: number;
-}
+import { Reaction } from '../model';
+
+const Emoji = require('node-emoji');
 
 export interface ReactionListProps {
 	reactions: Reaction[];

@@ -7,7 +7,7 @@ import { Logout, Settings, PersonAdd } from '@mui/icons-material';
 import { ReactComponent as Logo } from '../resources/logo.svg';
 
 import { IuseSession } from '../hooks/useSession';
-import { UserPref } from '../app';
+import { UserPref } from '../model';
 
 
 export interface MenubarProps {
