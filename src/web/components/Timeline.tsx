@@ -5,6 +5,7 @@ const Emoji = require('node-emoji');
 
 import LaunchIcon from '@mui/icons-material/Launch';
 
+import { Reaction, ReactionListProps, ReactionList } from './ReactionList';
 import { IuseSession } from '../hooks/useSession';
 
 
@@ -12,12 +13,6 @@ const endpoint_getEmojiList = 'https://slack.com/api/emoji.list';
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
 const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
 const endpoint_getPermalink = 'https://slack.com/api/chat.getPermalink';
-
-interface Reaction {
-	key: string;
-	count: number;
-	image: string;
-}
 
 interface RawRTMMessage {
 	type: string;
@@ -365,18 +360,18 @@ export function Timeline(props: TimelineProps) {
 
 
 	return (
-		<List>
+		<List sx={{flex: 1}}>
 			{constructThread(messages).map(e =>
 			<React.Fragment key={e.ts}>
 				<ListItem sx={{alignItems: 'flex-start', flex: 1}}>
 					<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-						<Box sx={{width: '0', height: '38px', border: '2px solid #777'}}></Box>
-						<Box sx={{width: '0', flex: 1, border: '2px solid #777'}}></Box>
+						<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
+						<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
 					</Box>
 					<Box sx={{width: '48px', mr: '12px'}}>
 						<Avatar alt="Profile Picture" src={e.avatar} sx={{marginTop: '5px', width: '48px', height: '48px'}} />
 					</Box>
-					<Box sx={{display: 'flex', flex: 1, flexDirection: 'column'}}>
+					<Box sx={{display: 'flex', flex: 1, flexDirection: 'column', pr: '15px'}}>
 						<Box>
 							<Typography component="span" sx={{fontWeight: '700'}}>{e.user}</Typography>
 							<Typography component="span" sx={{fontWeight: '400'}}>
@@ -388,29 +383,12 @@ export function Timeline(props: TimelineProps) {
 								{e.text}
 							</Typography>
 						</Box>
-						<Box sx={{display: 'flex', flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
-							<Box sx={{flex: 1}}>
-								{e.reactions.map((data) =>
-									<Chip
-										key={data.key}
-										size='small'
-										avatar={
-										<Avatar alt={data.key} src={emojiDict[data.key]} sx={{bgcolor: 'unset'}}>
-											<Typography sx={{verticalAlign: 'middle'}}>
-												{Emoji.get(data.key)}
-											</Typography>
-										</Avatar>}
-										label={`${data.key} x ${data.count}`}
-										sx={{mr: '5px', mt: '5px'}}
-									/>
-								)}
-							</Box>
-							<Box sx={{display: 'flex', flexDirection: 'column-reverse'}}>
-								<IconButton aria-label='open in slack' size='small' onClick={() => openInSlack(e.channelID, e.ts)}>
-									<LaunchIcon fontSize="inherit" />
-								</IconButton>
-							</Box>
-						</Box>
+						<ReactionList reactions={e.reactions} emojiDict={emojiDict} />
+					</Box>
+					<Box sx={{position: 'absolute', right: '5px', bottom: '6px'}}>
+						<IconButton aria-label='open in slack' size='small' onClick={() => openInSlack(e.channelID, e.ts)}>
+							<LaunchIcon fontSize="inherit" />
+						</IconButton>
 					</Box>
 				</ListItem>
 				<Divider variant="inset" component="li" />
