@@ -101,31 +101,34 @@ export function Timeline(props: TimelineProps) {
 
 
 	return (<>
-		<List sx={{flex: 1}}>
-			{constructThread(props.messages.current).map(e =>
-			<React.Fragment key={e.ts}>
-				{(() => {
-				switch (e.thread.length) {
-					case 0:
-						return <Tweet message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
-					break;
-					case 1:
-						return <TweetWith1Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
-					break;
-					case 2:
-						return <TweetWith2Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
-					break;
-					default:
-						return <TweetWithMoreThan3Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
-					break;
-				}
-				})()}
-				<Divider variant="inset" component="li" sx={{margin: '0 5px'}} />
-			</React.Fragment>
-			)}
-		</List>
-		{(props.messages.current.length == 0) &&
-		<Box sx={{position: 'absolute', width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start'}}>
+		{(props.messages.current.length != 0) ?
+		<Paper sx={{display: 'flex', flex: 1}}>
+			<List sx={{flex: 1}}>
+				{constructThread(props.messages.current).map(e =>
+				<React.Fragment key={e.ts}>
+					{(() => {
+					switch (e.thread.length) {
+						case 0:
+							return <Tweet message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
+						break;
+						case 1:
+							return <TweetWith1Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
+						break;
+						case 2:
+							return <TweetWith2Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
+						break;
+						default:
+							return <TweetWithMoreThan3Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
+						break;
+					}
+					})()}
+					<Divider variant="inset" component="li" sx={{margin: '0 5px'}} />
+				</React.Fragment>
+				)}
+			</List>
+		</Paper>
+		:
+		<Box sx={{position: 'absolute', width: '100%', height: '0', display: 'flex', justifyContent: 'center', alignItems: 'flex-start'}}>
 			<Paper elevation={5} sx={{mt: '50px', padding: '20px'}}>
 				まだ空っぽです！　誰かが発言するとここに自動的に表示されます。<br/>
 				もしくは、右上のメニューから履歴を強制的にロードすることもできます。<br/>

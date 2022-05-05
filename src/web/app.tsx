@@ -286,7 +286,7 @@ const App = () => {
 	return (<>
 		<ThemeProvider theme={darkTheme}>
 			<CssBaseline />
-			<Paper square sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+			<Box sx={{ display: 'flex', flexDirection: 'column' }}>
 				<Menubar session={session} loadHistory={loadHistory} userPref={{avatar: avatar, joinedChannels: channels}}></Menubar>
 				<Box sx={{display: 'flex', flexGrow: 1}}>
 					{ session.logined() ? 
@@ -299,7 +299,7 @@ const App = () => {
 						:
 						<Login ipc={ipcRenderer} session={session}></Login> }
 				</Box>
-			</Paper>
+			</Box>
 		</ThemeProvider>
 	</>);
 };
