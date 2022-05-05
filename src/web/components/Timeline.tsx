@@ -395,7 +395,7 @@ export function Timeline(props: TimelineProps) {
 					break;
 				}
 				})()}
-				<Divider variant="inset" component="li" />
+				<Divider variant="inset" component="li" sx={{margin: '0 5px'}} />
 			</React.Fragment>
 			)}
 		</List>
