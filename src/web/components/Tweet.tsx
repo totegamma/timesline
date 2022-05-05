@@ -31,7 +31,7 @@ function Template(props: TweetProps & {children?: ReactNode}){
 					</Typography>
 				</Box>
 				<Box>
-					<Typography>
+					<Typography sx={{overflowWrap: 'anywhere'}}>
 						{props.message.text}
 					</Typography>
 				</Box>
