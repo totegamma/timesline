@@ -13,6 +13,7 @@ export interface RawRTMMessage {
 	reaction: string;
 	item: any;
 	thread_ts: string;
+	files: any;
 }
 
 export interface RTMMessage {
@@ -30,6 +31,8 @@ export interface RTMMessage {
 	reactions: Reaction[];
 	thread: RTMMessage[];
 	has_unloadedThread: boolean;
+	attachmentThumbnail?: any;
+	attachmentURL?: string;
 }
 
 export interface Reaction {

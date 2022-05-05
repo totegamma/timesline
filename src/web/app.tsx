@@ -160,6 +160,7 @@ const App = () => {
 		if (!ChannelFilter(channelName)) return;
 		const datetime = new Date(parseFloat(e.ts) * 1000);
 		const user = await userDict.get(e.user);
+		const thumbnail = (e.files?.[0]?.thumb_480) ? await getProtectedImage(e.files?.[0]?.thumb_480) : undefined;
 		const rec = {
 			type: e.type,
 			ts: e.ts,
@@ -174,7 +175,9 @@ const App = () => {
 			reactions: [],
 			thread: [],
 			parent: e.thread_ts,
-			has_unloadedThread: false
+			has_unloadedThread: false,
+			attachmentThumbnail: thumbnail,
+			attachmentURL: e.files?.[0]?.url_private
 		};
 		console.info("addMessage");
 		messages.push(rec);
@@ -224,12 +227,25 @@ const App = () => {
 	}
 
 
+	const getProtectedImage = async(path: string) => {
+		const res = await fetch(path, {
+			method: 'POST',
+			headers: {
+				'authorization': 'Bearer ' + session.userToken
+			},
+		});
+		const data = await res.blob();
+		return URL.createObjectURL(data);
+	}
+
 
 
 	// 履歴取得系
-	const hist2msg = async (e: any, channel: string, channelID: string) =>{
+	const hist2msg = async (e: any, channel: string, channelID: string) => {
 		const datetime = new Date(parseFloat(e.ts) * 1000);
 		const user = await userDict.get(e.user);
+		const thumbnail = (e.files?.[0]?.thumb_480) ? await getProtectedImage(e.files?.[0]?.thumb_480) : undefined;
+
 		return {
 			type: e.type,
 			ts: e.ts,
@@ -244,7 +260,9 @@ const App = () => {
 			parent: undefined,
 			reactions: e.reactions?.map((reaction: any) => ({key: reaction.name, count: reaction.count})) ?? [],
 			thread: [],
-			has_unloadedThread: ('thread_ts' in e)
+			has_unloadedThread: ('thread_ts' in e),
+			attachmentThumbnail: thumbnail,
+			attachmentURL: e.files?.[0]?.url_private
 		};
 	}
 

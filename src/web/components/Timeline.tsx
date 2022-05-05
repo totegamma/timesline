@@ -109,16 +109,16 @@ export function Timeline(props: TimelineProps) {
 					{(() => {
 					switch (e.thread.length) {
 						case 0:
-							return <Tweet message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
+							return <Tweet message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={emojiDict.current} />
 						break;
 						case 1:
-							return <TweetWith1Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
+							return <TweetWith1Reply message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={emojiDict.current} />
 						break;
 						case 2:
-							return <TweetWith2Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
+							return <TweetWith2Reply message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={emojiDict.current} />
 						break;
 						default:
-							return <TweetWithMoreThan3Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
+							return <TweetWithMoreThan3Reply message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={emojiDict.current} />
 						break;
 					}
 					})()}
