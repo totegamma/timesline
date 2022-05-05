@@ -11,7 +11,7 @@ import { useResourceManager, IuseResourceManager } from './hooks/useResourceMana
 
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
 const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
-
+const endpoint_getChannels = 'https://slack.com/api/users.conversations';
 
 const ipcRenderer = (window as any).preload.ipcRenderer;
 
@@ -27,9 +27,18 @@ const darkTheme = createTheme({
 	}
 });
 
+export interface UserPref {
+	avatar: undefined | string;
+	joinedChannels: string[];
+}
+
+
 const App = () => {
 
 	const session: IuseSession = useSession();
+
+	const [avatar, setAvatar] = useState<undefined | string>();
+	const [channels, setChannels] = useState<string[]>([]);
 
 	const userDict = useResourceManager<any>(async (key: string) => {
 			const res = await fetch(endpoint_getUserInfo, {
@@ -72,15 +81,53 @@ const App = () => {
 	});
 
 
+	useEffect(() => {
+		if (session.userID) {
+			const requestOptions = {
+				method: 'POST',
+				headers: {
+					'content-type': 'application/x-www-form-urlencoded',
+					'authorization': 'Bearer ' + session.userToken
+				},
+				body: `user=${session.userID}`
+			};
+
+			fetch(endpoint_getUserInfo, requestOptions)
+				.then(response => response.json())
+				.then(data => {
+					if (data.ok) {
+						setAvatar(data.user.profile.image_192);
+					} else {
+						console.error("get avatar failed. reason: " + data.error);
+					}
+				});
+
+			fetch(endpoint_getChannels, {
+				method: 'POST',
+				headers: {
+					'content-type': 'application/x-www-form-urlencoded',
+					'authorization': 'Bearer ' + session.userToken
+				},
+				body: `user=${session.userID}&types=public_channel,private_channel&exclude_archived=true`
+			})
+			.then(response => response.json())
+			.then(data => {
+				setChannels(data.channels.map((e: any) => e.id)); // TODO: pagenate is required to get over 100 channels
+			});
+		}
+	}, [session.userID]);
+
+
+
 	return (<>
 		<ThemeProvider theme={darkTheme}>
 			<CssBaseline />
 			<Paper square sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-				<Menubar {...{session: session}}></Menubar>
+				<Menubar session={session} userPref={{avatar: avatar, joinedChannels: channels}}></Menubar>
 				<Box sx={{display: 'flex', flexGrow: 1}}>
 					{ session.logined() ? 
 						<Timeline ipc={ipcRenderer} session={session} userDict={userDict} channelDict={channelDict}></Timeline> 
-						: <Login {...{ipc: ipcRenderer, session: session}}></Login> }
+						: <Login ipc={ipcRenderer} session={session}></Login> }
 				</Box>
 			</Paper>
 		</ThemeProvider>

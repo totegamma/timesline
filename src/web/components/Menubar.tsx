@@ -7,10 +7,12 @@ import { Logout, Settings, PersonAdd } from '@mui/icons-material';
 import { ReactComponent as Logo } from '../resources/logo.svg';
 
 import { IuseSession } from '../hooks/useSession';
+import { UserPref } from '../app';
 
 
 export interface MenubarProps {
-	session: IuseSession 
+	session: IuseSession;
+	userPref: UserPref;
 }
 
 export function Menubar(props: MenubarProps) {
@@ -41,7 +43,7 @@ export function Menubar(props: MenubarProps) {
 					aria-haspopup="true"
 					aria-expanded={open ? 'true' : undefined}
 					>
-					<Avatar src={props.session.avatar} sx={{ width: 32, height: 32 }}></Avatar>
+					<Avatar src={props.userPref.avatar} sx={{ width: 32, height: 32 }}></Avatar>
 					</IconButton>
 				</Tooltip>
 				}
