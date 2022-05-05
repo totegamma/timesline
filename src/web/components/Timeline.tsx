@@ -6,12 +6,10 @@ const Emoji = require('node-emoji');
 import { TweetProps, Tweet, TweetWith1Reply, TweetWith2Reply, TweetWithMoreThan3Reply } from './Tweet'
 import { Reaction } from './ReactionList';
 import { IuseSession } from '../hooks/useSession';
-import { useResourceManager, IuseResourceManager } from '../hooks/useResourceManager';
+import { IuseResourceManager } from '../hooks/useResourceManager';
 
 
 const endpoint_getEmojiList = 'https://slack.com/api/emoji.list';
-const endpoint_getUserInfo = 'https://slack.com/api/users.info';
-const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
 const endpoint_getPermalink = 'https://slack.com/api/chat.getPermalink';
 const endpoint_getHistory = 'https://slack.com/api/conversations.history';
 
@@ -154,7 +152,9 @@ const testMessage : any[] = [
 
 export interface TimelineProps {
 	ipc: any,
-	session: IuseSession
+	session: IuseSession,
+	userDict: IuseResourceManager<any>,
+	channelDict:IuseResourceManager<any>
 }
 
 export function Timeline(props: TimelineProps) {
@@ -163,57 +163,16 @@ export function Timeline(props: TimelineProps) {
 
 	const emojiDict = useRef<{ [key: string]: string}>({});
 
-	const userDict = useResourceManager<any>(async (key: string) => {
-			const res = await fetch(endpoint_getUserInfo, {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/x-www-form-urlencoded',
-					'authorization': 'Bearer ' + props.session.userToken
-				},
-				body: `user=${key}`
-			});
-			const data = await res.json();
-
-			if (!data.ok) {
-				console.error("resolve user failed. reason: " + data.error);
-				return {};
-			}
-
-			return data.user.profile;
-	});
-
-
-	const channelDict = useResourceManager<any>(async (key: string) => {
-			const res = await fetch(endpoint_getChannelInfo, {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/x-www-form-urlencoded',
-					'authorization': 'Bearer ' + props.session.userToken
-				},
-				body: `channel=${key}`
-
-			});
-			const data = await res.json();
-
-			if (!data.ok) {
-				console.error("resolve channel failed. reason: " + data.error);
-				return {};
-			}
-
-			return data.channel;
-	});
-
-
 	const addMessage = async (e: RawRTMMessage) =>{
 		const datetime = new Date(parseFloat(e.ts) * 1000);
-		const user = await userDict.get(e.user);
+		const user = await props.userDict.get(e.user);
 		const rec = {
 			type: e.type,
 			ts: e.ts,
 			ts_number: parseFloat(e.ts),
 			last_activity: parseFloat(e.ts),
 			user: user.display_name,
-			channel: (await channelDict.get(e.channel)).name ?? "ERROR",
+			channel: (await props.channelDict.get(e.channel)).name ?? "ERROR",
 			channelID: e.channel,
 			text: e.text,
 			avatar: user.image_192,
