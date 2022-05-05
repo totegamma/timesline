@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Avatar, Chip, IconButton, StepConnector } from '@mui/material';
-import { List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
+import { Box, Paper, Typography, List, Divider } from '@mui/material';
 const Emoji = require('node-emoji');
 
 import { TweetProps, Tweet, TweetWith1Reply, TweetWith2Reply, TweetWithMoreThan3Reply } from './Tweet'
@@ -101,7 +100,7 @@ export function Timeline(props: TimelineProps) {
 	}
 
 
-	return (
+	return (<>
 		<List sx={{flex: 1}}>
 			{constructThread(props.messages.current).map(e =>
 			<React.Fragment key={e.ts}>
@@ -125,7 +124,16 @@ export function Timeline(props: TimelineProps) {
 			</React.Fragment>
 			)}
 		</List>
-	);
+		{(props.messages.current.length == 0) &&
+		<Box sx={{position: 'absolute', width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start'}}>
+			<Paper elevation={5} sx={{mt: '50px', padding: '20px'}}>
+				まだ空っぽです！　誰かが発言するとここに自動的に表示されます。<br/>
+				もしくは、右上のメニューから履歴を強制的にロードすることもできます。<br/>
+				(履歴のロードは連打するとAPI Rate Limitに引っかかる可能性があります。)
+			</Paper>
+		</Box>
+		}
+	</>);
 }
 
 
