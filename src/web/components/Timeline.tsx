@@ -6,6 +6,7 @@ const Emoji = require('node-emoji');
 import { TweetProps, Tweet, TweetWith1Reply, TweetWith2Reply, TweetWithMoreThan3Reply } from './Tweet'
 import { Reaction } from './ReactionList';
 import { IuseSession } from '../hooks/useSession';
+import { useResourceManager, IuseResourceManager } from '../hooks/useResourceManager';
 
 
 const endpoint_getEmojiList = 'https://slack.com/api/emoji.list';
@@ -161,8 +162,28 @@ export function Timeline(props: TimelineProps) {
 	const [messages, setMessages] = useState<RTMMessage[]>([]); // TODO: should be custom hook
 
 	const emojiDict = useRef<{ [key: string]: string}>({});
-	const userDict = useRef<{ [id: string]: object}>({});
+	//const userDict = useRef<{ [id: string]: object}>({});
 	const channelDict = useRef<{ [id: string]: object}>({});
+
+	const userDict = useResourceManager<object>(async (key: string) => {
+			const res = await fetch(endpoint_getUserInfo, {
+				method: 'POST',
+				headers: {
+					'content-type': 'application/x-www-form-urlencoded',
+					'authorization': 'Bearer ' + props.session.userToken
+				},
+				body: `user=${key}`
+			});
+			const data = await res.json();
+
+			if (!data.ok) {
+				console.error("resolve user failed. reason: " + data.error);
+				return {};
+			}
+
+			return data.user.profile;
+	});
+
 
 
 	const ResolveUser = async (id: string) => {
@@ -321,7 +342,7 @@ export function Timeline(props: TimelineProps) {
 		});
 
 
-		//testMessage.forEach((e, i) => setTimeout(handleMessage, i*250, e));
+		testMessage.forEach((e, i) => setTimeout(handleMessage, i*250, e));
 	}, []);
 
 /*
