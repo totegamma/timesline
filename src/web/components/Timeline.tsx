@@ -13,7 +13,6 @@ import { testMessage } from '../resources/testItem';
 
 const endpoint_getEmojiList = 'https://slack.com/api/emoji.list';
 const endpoint_getPermalink = 'https://slack.com/api/chat.getPermalink';
-const endpoint_getHistory = 'https://slack.com/api/conversations.history';
 
 
 export interface TimelineProps {

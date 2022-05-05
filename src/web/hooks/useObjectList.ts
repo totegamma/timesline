@@ -5,10 +5,11 @@ export interface IuseObjectList<T> {
 	push: (e: T) => void;
 	concat: (e: T[]) => void;
 	update: (updater: (e: T[]) => T[]) => void;
+	clear: () => void;
 }
 
-interface objectListAction<T> {
-	type: 'push' | 'concat' | 'update';
+interface objectListAction<T> { // FIXME: これもっと賢い型の定義方法あったよね？
+	type: 'push' | 'concat' | 'update' | 'clear';
 	argT?: T;
 	argTarr?: T[];
 	argTcall?: (e: T[]) => T[];
@@ -31,9 +32,8 @@ export function useObjectList<T>(): IuseObjectList<T> {
 				if (action.argTcall) return action.argTcall(old);
 				else return old;
 				break;
-			default:
-					return old;
-				break;
+			case 'clear':
+				return [];
 		}
 
 	}, []);
@@ -59,11 +59,18 @@ export function useObjectList<T>(): IuseObjectList<T> {
 		});
 	}
 
+	const clear = () => {
+		dispatch({
+			type: 'clear'
+		});
+	}
+
 	return {
 		current,
 		push,
 		concat,
-		update
+		update,
+		clear
 	}
 
 }

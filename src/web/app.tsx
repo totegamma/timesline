@@ -16,6 +16,8 @@ import { UserPref, RTMMessage } from './model';
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
 const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
 const endpoint_getChannels = 'https://slack.com/api/users.conversations';
+const endpoint_getHistory = 'https://slack.com/api/conversations.history';
+
 
 const ipcRenderer = (window as any).preload.ipcRenderer;
 
@@ -140,46 +142,43 @@ const App = () => {
 		};
 	}
 
-/*
-	useEffect(() => {
-		if (props.userPref.joinedChannels) {
-			props.userPref.joinedChannels.forEach(channelID => {
-				//if (props.channelDict.current[channelID].name == "secrettest")
-				fetch(endpoint_getHistory, {
-					method: 'POST',
-					headers: {
-						'content-type': 'application/x-www-form-urlencoded',
-						'authorization': 'Bearer ' + props.session.userToken
-					},
-					body: `channel=${channelID}&limit=${10}`
-				})
-				.then(res => res.json())
-				.then(data => {
-					if (data.ok){
-						(async () => {
-							const newmsg = await Promise.all(
-								data.messages.map(
-									(e: any) => hist2msg(e, props.channelDict.current[channelID].name, channelID)
-								)
-							);
-							setMessages((old: any) => [...old, ...newmsg]);
-						})();
-					} else {
-						console.error("failed to history. reason:" + data.error);
-					}
-				});
+	const loadHistory = () => {
+
+		messages.clear();
+
+		channels.forEach(channelID => {
+			if (channelDict.current[channelID].name == "secrettest")
+			fetch(endpoint_getHistory, {
+				method: 'POST',
+				headers: {
+					'content-type': 'application/x-www-form-urlencoded',
+					'authorization': 'Bearer ' + session.userToken
+				},
+				body: `channel=${channelID}&limit=${10}`
+			})
+			.then(res => res.json())
+			.then(data => {
+				if (data.ok){
+					(async () => {
+						const newmsg = await Promise.all(
+							data.messages.map(
+								(e: any) => hist2msg(e, channelDict.current[channelID].name, channelID)
+							)
+						);
+						messages.concat(newmsg);
+					})();
+				} else {
+					console.error("failed to history. reason:" + data.error);
+				}
 			});
-		}
-	}, [props.userPref.joinedChannels]);
-	*/
-
-
+		});
+	}
 
 	return (<>
 		<ThemeProvider theme={darkTheme}>
 			<CssBaseline />
 			<Paper square sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-				<Menubar session={session} userPref={{avatar: avatar, joinedChannels: channels}}></Menubar>
+				<Menubar session={session} loadHistory={loadHistory} userPref={{avatar: avatar, joinedChannels: channels}}></Menubar>
 				<Box sx={{display: 'flex', flexGrow: 1}}>
 					{ session.logined() ? 
 						<Timeline ipc={ipcRenderer}

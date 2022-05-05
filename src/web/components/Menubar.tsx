@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Box } from '@mui/material';
 import { AppBar, Toolbar, Icon } from '@mui/material';
 import { Menu, MenuItem, Tooltip, IconButton, Avatar, Divider, ListItemIcon } from '@mui/material';
-import { Logout, Settings, PersonAdd } from '@mui/icons-material';
+
+import LogoutIcon from '@mui/icons-material/Logout';
+import HistoryIcon from '@mui/icons-material/History';
 
 import { ReactComponent as Logo } from '../resources/logo.svg';
 
@@ -13,6 +15,7 @@ import { UserPref } from '../model';
 export interface MenubarProps {
 	session: IuseSession;
 	userPref: UserPref;
+	loadHistory: () => void;
 }
 
 export function Menubar(props: MenubarProps) {
@@ -85,9 +88,17 @@ export function Menubar(props: MenubarProps) {
 			transformOrigin={{ horizontal: 'right', vertical: 'top' }}
 			anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
 		>
+
+			<MenuItem onClick={props.loadHistory}>
+				<ListItemIcon>
+					<HistoryIcon fontSize="small" />
+				</ListItemIcon>
+				LoadHistory
+			</MenuItem>
+			<Divider/>
 			<MenuItem onClick={() => props.session.logout()}>
 				<ListItemIcon>
-					<Logout fontSize="small" />
+					<LogoutIcon fontSize="small" />
 				</ListItemIcon>
 				Logout
 			</MenuItem>
