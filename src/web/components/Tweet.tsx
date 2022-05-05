@@ -1,5 +1,5 @@
-import React from 'react';
-import { ListItem, Box, Avatar, Typography, IconButton } from '@mui/material';
+import React, {ReactNode} from 'react';
+import { ListItem, Box, Avatar, Typography, IconButton, Link } from '@mui/material';
 
 import LaunchIcon from '@mui/icons-material/Launch';
 
@@ -12,17 +12,13 @@ export interface TweetProps {
 	message: RTMMessage;
 	openExternal: (channel: string, ts: string) => void;
 	emojiDict: { [id:string]: string };
-
 }
 
 
-export function Tweet(props: TweetProps) {
+function Template(props: TweetProps & {children?: ReactNode}){
 	return (
 		<ListItem sx={{alignItems: 'flex-start', flex: 1}}>
-			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-				<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
-				<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
-			</Box>
+			{props.children}
 			<Box sx={{width: '48px', mr: '12px'}}>
 				<Avatar alt="Profile Picture" src={props.message.avatar} sx={{marginTop: '5px', width: '48px', height: '48px'}} />
 			</Box>
@@ -30,7 +26,7 @@ export function Tweet(props: TweetProps) {
 				<Box>
 					<Typography component="span" sx={{fontWeight: '700'}}>{props.message.user}</Typography>
 					<Typography component="span" sx={{fontWeight: '400'}}>
-						{` #${props.message.channel}・${props.message.datetime} (${props.message.thread.length})`}
+						{` #${props.message.channel}・${props.message.datetime}`}
 					</Typography>
 				</Box>
 				<Box>
@@ -47,13 +43,89 @@ export function Tweet(props: TweetProps) {
 			</Box>
 		</ListItem>
 	)
+
 }
 
-export function TweetWith1Reply(message: RTMMessage) {
+
+export function Tweet(props: TweetProps) {
+	return (
+		<Template {...props} />
+	)
 }
 
-export function TweetWith2Reply(message: RTMMessage) {
+export function TweetWith1Reply(props: TweetProps) {
+	return (<>
+		<Template message={props.message} openExternal={props.openExternal} emojiDict={props.emojiDict}>
+			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+				<Box sx={{width: '0', height: '38px'}}></Box>
+				<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
+			</Box>
+		</Template>
+		<Template message={props.message.thread[0]} openExternal={props.openExternal} emojiDict={props.emojiDict}>
+			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+				<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', flex: 1}}></Box>
+			</Box>
+		</Template>
+	</>)
+
 }
 
-export function TweetWithMoreThan3Reply(message: RTMMessage) {
+export function TweetWith2Reply(props: TweetProps) {
+	return (<>
+		<Template message={props.message} openExternal={props.openExternal} emojiDict={props.emojiDict}>
+			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+				<Box sx={{width: '0', height: '38px'}}></Box>
+				<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
+			</Box>
+		</Template>
+		<Template message={props.message.thread[0]} openExternal={props.openExternal} emojiDict={props.emojiDict}>
+			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+				<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
+			</Box>
+		</Template>
+		<Template message={props.message.thread[1]} openExternal={props.openExternal} emojiDict={props.emojiDict}>
+			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+				<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', flex: 1}}></Box>
+			</Box>
+		</Template>
+	</>)
+
+}
+
+export function TweetWithMoreThan3Reply(props: TweetProps) {
+	return (<>
+		<Template message={props.message} openExternal={props.openExternal} emojiDict={props.emojiDict}>
+			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+				<Box sx={{width: '0', height: '38px'}}></Box>
+				<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
+			</Box>
+		</Template>
+
+		<ListItem sx={{alignItems: 'flex-start', flex: 1}}>
+			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+				<Box sx={{width: '0', flex: 1, border: '1.5px dashed #333639'}}></Box>
+			</Box>
+			<Box sx={{width: '48px', mr: '12px'}}></Box>
+			<Link component="button" color='primary' onClick={() => props.openExternal(props.message.channelID, props.message.ts)} sx={{textDecoration: 'none'}}>
+				返信をさらに表示
+			</Link>
+		</ListItem>
+
+		<Template message={props.message.thread[props.message.thread.length-2]} openExternal={props.openExternal} emojiDict={props.emojiDict}>
+			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+				<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
+			</Box>
+		</Template>
+		<Template message={props.message.thread[props.message.thread.length-1]} openExternal={props.openExternal} emojiDict={props.emojiDict}>
+			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+				<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', flex: 1}}></Box>
+			</Box>
+		</Template>
+	</>)
+
 }

@@ -3,7 +3,7 @@ import { Box, Typography, Avatar, Chip, IconButton, StepConnector } from '@mui/m
 import { List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
 const Emoji = require('node-emoji');
 
-import { TweetProps, Tweet } from './Tweet'
+import { TweetProps, Tweet, TweetWith1Reply, TweetWith2Reply, TweetWithMoreThan3Reply } from './Tweet'
 import { Reaction } from './ReactionList';
 import { IuseSession } from '../hooks/useSession';
 
@@ -28,6 +28,7 @@ export interface RTMMessage {
 	type: string;
 	ts: string;
 	ts_number: number;
+	last_activity: number;
 	user: string;
 	channel: string;
 	channelID: string;
@@ -45,14 +46,14 @@ const testMessage : any[] = [
 		ts: '1651292573.797389',
 		user: 'U1EC1GLF7',
 		channel: 'C03D2JHGC31',
-		text: 'メッセージ1メッセージ1メッセージ1メッセージ1メッセージ1メッセージ1メッセージ1メッセージ1メッセージ1'
+		text: 'あのイーハトーヴォのすきとおった風、夏でも底に冷たさをもつ青いそら、うつくしい森で飾られたモリーオ市、郊外のぎらぎらひかる草の波。'
 	},
 	{
 		type: 'message',
 		ts: '1651292573.797390',
 		user: 'U1EC1GLF7',
 		channel: 'C03D2JHGC31',
-		text: 'メッセージ2',
+		text: 'イーハトーヴォへの最初の返信',
 		thread_ts: '1651292573.797389'
 	},
 	{
@@ -60,28 +61,38 @@ const testMessage : any[] = [
 		ts: '1651292573.797391',
 		user: 'U1EC1GLF7',
 		channel: 'C03D2JHGC31',
-		text: 'メッセージ3'
+		text: 'イーハトーヴォへの2番目の返信',
+		thread_ts: '1651292573.797389'
 	},
 	{
 		type: 'message',
 		ts: '1651292573.797392',
 		user: 'U1EC1GLF7',
 		channel: 'C03D2JHGC31',
-		text: 'メッセージ4'
+		text: 'イーハトーヴォへの最後の返信',
+		thread_ts: '1651292573.797389'
 	},
 	{
 		type: 'message',
 		ts: '1651292573.797393',
 		user: 'U1EC1GLF7',
 		channel: 'C03D2JHGC31',
-		text: 'メッセージ5'
+		text: '山路を登りながら、こう考えた。智に働けば角が立つ。情に棹させば流される。意地を通せば窮屈だ。とかくに人の世は住みにくい。住みにくさが高じると、安い所へ引き越したくなる。どこへ越しても住みにくいと悟った時、詩が生れて、画が出来る。'
+	},
+	{
+		type: 'message',
+		ts: '1651292573.7973935',
+		user: 'U1EC1GLF7',
+		channel: 'C03D2JHGC31',
+		text: 'イラレへの返信1',
+		thread_ts: '1651292573.797393'
 	},
 	{
 		type: 'message',
 		ts: '1651292573.797394',
 		user: 'U1EC1GLF7',
 		channel: 'C03D2JHGC31',
-		text: 'メッセージ6'
+		text: '大人気ツイート'
 	},
 	{
 		type: 'reaction_added',
@@ -131,7 +142,7 @@ const testMessage : any[] = [
 	{
 		type: 'reaction_added',
 		channel: 'U1EC1GLF7',
-		reaction: 'lisp',
+		reaction: 'slack',
 		item: {
 			ts: '1651292573.797394',
 			channel: 'C03D2JHGC31'
@@ -222,6 +233,7 @@ export function Timeline(props: TimelineProps) {
 			type: e.type,
 			ts: e.ts,
 			ts_number: parseFloat(e.ts),
+			last_activity: parseFloat(e.ts),
 			user: user.display_name,
 			channel: (await ResolveChannel(e.channel)).name,
 			channelID: e.channel,
@@ -346,14 +358,19 @@ export function Timeline(props: TimelineProps) {
 		for (var i = input.length-1; i >= 0; i--) {
 			if (input[i].parent) {
 				const target = output.find(a => a.ts == input[i].parent);
-				if (target) target.thread.push(input[i]);
-				else console.warn("thread resolve failed");
+				if (target) {
+					target.last_activity = input[i].ts_number;
+					target.thread.push(input[i]);
+				} else {
+					console.warn("thread resolve failed");
+				}
 			} else {
 				input[i].thread = [];
+				input[i].last_activity = parseFloat(input[i].ts),
 				output.push(input[i]);
 			}
 		}
-		output.reverse();
+		output.sort((a, b) => b.last_activity- a.last_activity)
 		return output;
 	}
 
@@ -362,7 +379,22 @@ export function Timeline(props: TimelineProps) {
 		<List sx={{flex: 1}}>
 			{constructThread(messages).map(e =>
 			<React.Fragment key={e.ts}>
-				<Tweet message={e} openExternal={openInSlack} emojiDict={emojiDict} />
+				{(() => {
+				switch (e.thread.length) {
+					case 0:
+						return <Tweet message={e} openExternal={openInSlack} emojiDict={emojiDict} />
+					break;
+					case 1:
+						return <TweetWith1Reply message={e} openExternal={openInSlack} emojiDict={emojiDict} />
+					break;
+					case 2:
+						return <TweetWith2Reply message={e} openExternal={openInSlack} emojiDict={emojiDict} />
+					break;
+					default:
+						return <TweetWithMoreThan3Reply message={e} openExternal={openInSlack} emojiDict={emojiDict} />
+					break;
+				}
+				})()}
 				<Divider variant="inset" component="li" />
 			</React.Fragment>
 			)}
