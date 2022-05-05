@@ -132,7 +132,7 @@ export function Timeline(props: TimelineProps) {
 			<Paper elevation={5} sx={{mt: '50px', padding: '20px'}}>
 				まだ空っぽです！　誰かが発言するとここに自動的に表示されます。<br/>
 				もしくは、右上のメニューから履歴を強制的にロードすることもできます。<br/>
-				(履歴のロードは連打するとAPI Rate Limitに引っかかる可能性があります。)
+				(履歴のロードはAPI Rate Limitに引っかかりやすいので気をつけてください。)
 			</Paper>
 		</Box>
 		}

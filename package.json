@@ -18,6 +18,7 @@
   "build": {
     "appId": "net.gammalab.timesline",
     "productName": "Timesline",
+	"icon": "./icon.png",
     "files": [
       "dist/**/*"
     ]
