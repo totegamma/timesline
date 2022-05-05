@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, Avatar, Chip, IconButton, StepConnector } from '@mui/material';
 import { List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
 const Emoji = require('node-emoji');
@@ -12,6 +12,7 @@ const endpoint_getEmojiList = 'https://slack.com/api/emoji.list';
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
 const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
 const endpoint_getPermalink = 'https://slack.com/api/chat.getPermalink';
+const endpoint_getHistory = 'https://slack.com/api/conversations.history';
 
 interface RawRTMMessage {
 	type: string;
@@ -159,17 +160,15 @@ export function Timeline(props: TimelineProps) {
 
 	const [messages, setMessages] = useState<RTMMessage[]>([]); // TODO: should be custom hook
 
-	const [userDict, setUserDict] = useState<{ [id: string]: any}>({});
-	const [channelDict, setChannelDict] = useState<{ [id: string]: any}>({});
-
-	const [emojiDict, setEmojiDict] = useState<{ [key: string]: string}>({});
+	const emojiDict = useRef<{ [key: string]: string}>({});
+	const userDict = useRef<{ [id: string]: object}>({});
+	const channelDict = useRef<{ [id: string]: object}>({});
 
 
 	const ResolveUser = async (id: string) => {
 
-		if (id in userDict) {
-			console.info("resolve user from cache");
-			return userDict[id];
+		if (id in userDict.current) {
+			return userDict.current[id];
 		} else {
 			console.info("resolve user from API");
 			const requestOptions = {
@@ -189,8 +188,7 @@ export function Timeline(props: TimelineProps) {
 				return {};
 			}
 
-			userDict[id] = data.user.profile;
-			setUserDict(userDict);
+			userDict.current[id] = data.user.profile;
 
 			return data.user.profile;
 		}
@@ -199,9 +197,8 @@ export function Timeline(props: TimelineProps) {
 
 	const ResolveChannel = async (id: string) => {
 
-		if (id in channelDict) {
-			console.info("resolve channel from cache");
-			return channelDict[id];
+		if (id in channelDict.current) {
+			return channelDict.current[id];
 		} else {
 			console.info("resovle channel from API");
 			const requestOptions = {
@@ -216,8 +213,7 @@ export function Timeline(props: TimelineProps) {
 			const res = await fetch(endpoint_getChannelInfo, requestOptions);
 			const data = await res.json();
 
-			channelDict[id] = data.channel;
-			setChannelDict(channelDict);
+			channelDict.current[id] = data.channel;
 
 			return data.channel;
 		}
@@ -235,7 +231,7 @@ export function Timeline(props: TimelineProps) {
 			ts_number: parseFloat(e.ts),
 			last_activity: parseFloat(e.ts),
 			user: user.display_name,
-			channel: (await ResolveChannel(e.channel)).name,
+			channel: (await ResolveChannel(e.channel))?.name ?? "ERROR",
 			channelID: e.channel,
 			text: e.text,
 			avatar: user.image_192,
@@ -318,14 +314,45 @@ export function Timeline(props: TimelineProps) {
 		.then(res => res.json())
 		.then(data => {
 			if (data.ok){
-				setEmojiDict(data.emoji);
+				emojiDict.current = data.emoji
 			} else {
 				console.error("failed to get emoji list");
 			}
 		});
 
-		testMessage.forEach((e, i) => setTimeout(handleMessage, i*250, e));
+
+		//testMessage.forEach((e, i) => setTimeout(handleMessage, i*250, e));
 	}, []);
+
+/*
+	useEffect(() => {
+		if (props.session.joinedChannels) {
+			props.session.joinedChannels.forEach(channelID => {
+				fetch(endpoint_getHistory, {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/x-www-form-urlencoded',
+						'authorization': 'Bearer ' + props.session.userToken
+					},
+					body: `channel=${channelID}&limit=${10}`
+				})
+				.then(res => res.json())
+				.then(data => {
+					if (data.ok){
+						console.log(data);
+						//data.messages.forEach((e:any, i: number) => console.log(e));
+						data.messages.forEach((e: any, i: number) => {
+							e['channel'] = channelID;
+							setTimeout(handleMessage, i*500, e);
+						});
+					} else {
+						console.error("failed to history. reason:" + data.error);
+					}
+				});
+			});
+		}
+	}, [props.session.joinedChannels]);
+	*/
 
 
 	useEffect(() => {
@@ -355,7 +382,8 @@ export function Timeline(props: TimelineProps) {
 
 	const constructThread = (input: RTMMessage[]) => {
 		const output: RTMMessage[] = [];
-		for (var i = input.length-1; i >= 0; i--) {
+		output.sort((a, b) => a.ts_number - b.ts_number)
+		for (var i in input) {
 			if (input[i].parent) {
 				const target = output.find(a => a.ts == input[i].parent);
 				if (target) {
@@ -363,6 +391,10 @@ export function Timeline(props: TimelineProps) {
 					target.thread.push(input[i]);
 				} else {
 					console.warn("thread resolve failed");
+					input[i].user = `(reply)${input[i].user}`;
+					input[i].thread = [];
+					input[i].last_activity = parseFloat(input[i].ts),
+					output.push(input[i]);
 				}
 			} else {
 				input[i].thread = [];
@@ -370,7 +402,7 @@ export function Timeline(props: TimelineProps) {
 				output.push(input[i]);
 			}
 		}
-		output.sort((a, b) => b.last_activity- a.last_activity)
+		output.sort((a, b) => b.last_activity - a.last_activity)
 		return output;
 	}
 
@@ -382,16 +414,16 @@ export function Timeline(props: TimelineProps) {
 				{(() => {
 				switch (e.thread.length) {
 					case 0:
-						return <Tweet message={e} openExternal={openInSlack} emojiDict={emojiDict} />
+						return <Tweet message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
 					break;
 					case 1:
-						return <TweetWith1Reply message={e} openExternal={openInSlack} emojiDict={emojiDict} />
+						return <TweetWith1Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
 					break;
 					case 2:
-						return <TweetWith2Reply message={e} openExternal={openInSlack} emojiDict={emojiDict} />
+						return <TweetWith2Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
 					break;
 					default:
-						return <TweetWithMoreThan3Reply message={e} openExternal={openInSlack} emojiDict={emojiDict} />
+						return <TweetWithMoreThan3Reply message={e} openExternal={openInSlack} emojiDict={emojiDict.current} />
 					break;
 				}
 				})()}
