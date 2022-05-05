@@ -3,9 +3,8 @@ import { Box, Typography, Avatar, Chip, IconButton, StepConnector } from '@mui/m
 import { List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
 const Emoji = require('node-emoji');
 
-import LaunchIcon from '@mui/icons-material/Launch';
-
-import { Reaction, ReactionListProps, ReactionList } from './ReactionList';
+import { TweetProps, Tweet } from './Tweet'
+import { Reaction } from './ReactionList';
 import { IuseSession } from '../hooks/useSession';
 
 
@@ -25,7 +24,7 @@ interface RawRTMMessage {
 	thread_ts: string;
 }
 
-interface RTMMessage {
+export interface RTMMessage {
 	type: string;
 	ts: string;
 	ts_number: number;
@@ -363,34 +362,7 @@ export function Timeline(props: TimelineProps) {
 		<List sx={{flex: 1}}>
 			{constructThread(messages).map(e =>
 			<React.Fragment key={e.ts}>
-				<ListItem sx={{alignItems: 'flex-start', flex: 1}}>
-					<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-						<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
-						<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
-					</Box>
-					<Box sx={{width: '48px', mr: '12px'}}>
-						<Avatar alt="Profile Picture" src={e.avatar} sx={{marginTop: '5px', width: '48px', height: '48px'}} />
-					</Box>
-					<Box sx={{display: 'flex', flex: 1, flexDirection: 'column', pr: '15px'}}>
-						<Box>
-							<Typography component="span" sx={{fontWeight: '700'}}>{e.user}</Typography>
-							<Typography component="span" sx={{fontWeight: '400'}}>
-								{` #${e.channel}・${e.datetime} (${e.thread.length})`}
-							</Typography>
-						</Box>
-						<Box>
-							<Typography>
-								{e.text}
-							</Typography>
-						</Box>
-						<ReactionList reactions={e.reactions} emojiDict={emojiDict} />
-					</Box>
-					<Box sx={{position: 'absolute', right: '5px', bottom: '6px'}}>
-						<IconButton aria-label='open in slack' size='small' onClick={() => openInSlack(e.channelID, e.ts)}>
-							<LaunchIcon fontSize="inherit" />
-						</IconButton>
-					</Box>
-				</ListItem>
+				<Tweet message={e} openExternal={openInSlack} emojiDict={emojiDict} />
 				<Divider variant="inset" component="li" />
 			</React.Fragment>
 			)}
