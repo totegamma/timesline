@@ -323,7 +323,7 @@ export function Timeline(props: TimelineProps) {
 
 	const constructThread = (input: RTMMessage[]) => {
 		const output: RTMMessage[] = [];
-		output.sort((a, b) => a.ts_number - b.ts_number)
+		input.sort((a, b) => a.ts_number - b.ts_number)
 		for (var i in input) {
 			if (input[i].parent) {
 				const target = output.find(a => a.ts == input[i].parent);
