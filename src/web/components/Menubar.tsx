@@ -5,6 +5,7 @@ import { Menu, MenuItem, Tooltip, IconButton, Avatar, Divider, ListItemIcon } fr
 
 import LogoutIcon from '@mui/icons-material/Logout';
 import HistoryIcon from '@mui/icons-material/History';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 import { ReactComponent as Logo } from '../resources/logo.svg';
 
@@ -16,6 +17,7 @@ export interface MenubarProps {
 	session: IuseSession;
 	userPref: UserPref;
 	loadHistory: () => void;
+	openSetting: () => void;
 }
 
 export function Menubar(props: MenubarProps) {
@@ -89,6 +91,13 @@ export function Menubar(props: MenubarProps) {
 			anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
 		>
 
+			<MenuItem onClick={props.openSetting}>
+				<ListItemIcon>
+					<SettingsIcon fontSize="small" />
+				</ListItemIcon>
+				Settings
+			</MenuItem>
+			<Divider/>
 			<MenuItem onClick={props.loadHistory}>
 				<ListItemIcon>
 					<HistoryIcon fontSize="small" />

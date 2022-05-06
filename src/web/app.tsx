@@ -6,6 +6,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Menubar } from './components/Menubar';
 import { Timeline } from './components/Timeline';
 import { Login } from './components/Login';
+import { Settings } from './components/Settings';
 import { useSession, IuseSession } from './hooks/useSession';
 import { useResourceManager, IuseResourceManager } from './hooks/useResourceManager';
 import { useObjectList, IuseObjectList } from './hooks/useObjectList';
@@ -52,6 +53,7 @@ const App = () => {
 
 	const [avatar, setAvatar] = useState<undefined | string>();
 	const [channels, setChannels] = useState<string[]>([]);
+	const [openSetting, setOpenSetting] = useState<boolean>(false);
 
 	const userDict = useResourceManager<any>(async (key: string) => {
 		const res = await fetch(endpoint_getUserInfo, {
@@ -304,8 +306,13 @@ const App = () => {
 	return (<>
 		<ThemeProvider theme={darkTheme}>
 			<CssBaseline />
+			<Settings isOpen={openSetting} close={() => setOpenSetting(false)}/>
 			<Box sx={{ display: 'flex', flexDirection: 'column' }}>
-				<Menubar session={session} loadHistory={loadHistory} userPref={{avatar: avatar, joinedChannels: channels}}></Menubar>
+				<Menubar
+					session={session}
+					openSetting={() => setOpenSetting(true)}
+					loadHistory={loadHistory} 
+					userPref={{avatar: avatar, joinedChannels: channels}}></Menubar>
 				<Box sx={{display: 'flex', flexGrow: 1}}>
 					{ session.logined() ? 
 						<Timeline ipc={ipcRenderer}
