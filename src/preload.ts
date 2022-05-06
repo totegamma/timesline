@@ -2,6 +2,7 @@ import {contextBridge, ipcRenderer} from 'electron';
 
 contextBridge.exposeInMainWorld(
 	"preload", {
-		ipcRenderer: ipcRenderer
+		ipcRenderer: ipcRenderer,
+		safe_eval: require('eval')
 	}
 );

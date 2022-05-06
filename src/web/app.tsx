@@ -28,8 +28,8 @@ const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
 const endpoint_getChannels = 'https://slack.com/api/users.conversations';
 const endpoint_getHistory = 'https://slack.com/api/conversations.history';
 
-
 const ipcRenderer = (window as any).preload.ipcRenderer;
+const safe_eval = (window as any).preload.safe_eval;
 
 const darkTheme = createTheme({
 	palette: {
@@ -45,6 +45,12 @@ const darkTheme = createTheme({
 
 
 const App = () => {
+
+	useEffect(() => {
+		const filter = safe_eval("module.exports = (channelName) => channelName[0] == '_'");
+		console.log(filter("_aaaa"));
+		console.log(filter("aaaaa"));
+	}, []);
 
 	// =========================:: STATEs ::===============================
 
