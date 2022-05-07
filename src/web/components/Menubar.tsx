@@ -91,18 +91,18 @@ export function Menubar(props: MenubarProps) {
 			anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
 		>
 
-			<MenuItem onClick={props.openSetting}>
-				<ListItemIcon>
-					<SettingsIcon fontSize="small" />
-				</ListItemIcon>
-				Settings
-			</MenuItem>
-			<Divider/>
 			<MenuItem onClick={props.loadHistory}>
 				<ListItemIcon>
 					<HistoryIcon fontSize="small" />
 				</ListItemIcon>
 				LoadHistory
+			</MenuItem>
+			<Divider/>
+			<MenuItem onClick={props.openSetting}>
+				<ListItemIcon>
+					<SettingsIcon fontSize="small" />
+				</ListItemIcon>
+				Settings
 			</MenuItem>
 			<Divider/>
 			<MenuItem onClick={() => props.session.logout()}>

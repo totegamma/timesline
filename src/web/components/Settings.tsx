@@ -71,16 +71,16 @@ export const Settings = (props: SettingsProp) => {
 					subheader={<ListSubheader>Settings</ListSubheader>}
 				>
 					<ListItem>
-						<ListItemText primary="ChannelFilter" />
-						<Box sx={{display: 'flex', flexDirection: 'column', gap: 1}}>
-						<TextField
-							multiline
-							label="(channelName) => boolean"
-							rows={8}
-							value={filterEdit}
-							onChange={e => SetFilterEdit(e.target.value)}
-						/>
-						<Button variant="contained" onClick={handleClick}>Apply</Button>
+						<ListItemText primary="ChannelFilter" sx={{flex: 1}}/>
+						<Box sx={{display: 'flex', flex: 2, flexDirection: 'column', gap: 1}}>
+							<TextField
+								multiline
+								label="(channelName) => boolean"
+								rows={8}
+								value={filterEdit}
+								onChange={e => SetFilterEdit(e.target.value)}
+							/>
+							<Button variant="contained" onClick={handleClick}>Apply</Button>
 						</Box>
 					</ListItem>
 				</List>
