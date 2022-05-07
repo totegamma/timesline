@@ -40,17 +40,13 @@ function Template(props: TweetProps & {children?: ReactNode}){
 					<Box component="img"
 						 src={props.message.attachmentThumbnail}
 						 onClick={() => (props.message.attachmentURL) && props.openBrowser(props.message.attachmentURL)}
-						 sx={{mt: '8px', maxHeight: '400px', maxWidth: '400px', borderRadius: '16px', border: '1px solid #333', cursor: 'pointer'}}></Box>
+						 sx={{mt: '8px', objectFit: 'cover', maxHeight: '400px', maxWidth: '400px', borderRadius: '16px', border: '1px solid #333', cursor: 'pointer'}}></Box>
 				}
 				<ReactionList reactions={props.message.reactions} emojiDict={props.emojiDict} />
 			</Box>
 		</ListItem>
 	)
 }
-
-//<img src={props.message.attachmentThumbnail}/>
-//<Box component="img" src={props.message.attachmentThumbnail} sx={{maxHeight: '256px', maxWidth: '256px'}}></Box>
-
 
 export function Tweet(props: TweetProps) {
 	return (<>
