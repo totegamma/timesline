@@ -233,7 +233,7 @@ const App = () => {
 	const handleMessage = (body: any) => {
 		switch (body.type) {
 			case 'message':
-				if (body.subtype) return;
+				if (body.subtype && body.subtype != "thread_broadcast") return;
 				addMessage(body);
 				break;
 			case 'reaction_added':
