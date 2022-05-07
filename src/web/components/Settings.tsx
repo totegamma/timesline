@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import { Box, Paper, Typography, Modal, Divider, TextField } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Paper, Typography, Modal, Divider, TextField, Button, Snackbar } from '@mui/material';
+import MuiAlert, { AlertProps, AlertColor } from '@mui/material/Alert';
 import { List, ListSubheader, ListItem, ListItemText } from '@mui/material';
 
 
@@ -13,18 +14,57 @@ const style = {
 };
 
 export interface SettingsProp {
+	safe_eval: any;
 	isOpen: boolean;
 	close: () => void;
+	filterSource: string;
+	updateFilter: (func: () => boolean, source: string) => void;
 }
 
+const Alert = React.forwardRef<HTMLDivElement, AlertProps> (
+	function Alert(props, ref, ) {
+			return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+	}
+);
 
 export const Settings = (props: SettingsProp) => {
+
+	const [open, SetOpen] = useState<boolean>(false);
+	const [tipMessage, SetTipMessage] = useState<string>("");
+	const [tipServerity, SetTipServerity] = useState<AlertColor>("success");
+
+	const [filterEdit, SetFilterEdit] = useState<string>(props.filterSource);
+
+	const handleClick = () => {
+
+		try {
+			const filter = props.safe_eval("module.exports="+filterEdit);
+			console.log(filter("TEST"));
+			props.updateFilter(filter, filterEdit);
+		} catch (error) {
+			SetTipMessage(`${error}`);
+			SetTipServerity("error");
+			SetOpen(true);
+			return;
+		}
+		SetTipMessage("Filter updated successfully.");
+		SetTipServerity("success");
+		SetOpen(true);
+	};
+
+	const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+		if (reason === 'clickaway') {
+			return;
+		}
+		SetOpen(false);
+	};
 
 	return (
 		<Modal
 			open={props.isOpen}
 			onClose={props.close}
 		>
+			<>
 			<Paper sx={style}>
 				<List
 					sx={{width: '100%'}}
@@ -32,14 +72,25 @@ export const Settings = (props: SettingsProp) => {
 				>
 					<ListItem>
 						<ListItemText primary="ChannelFilter" />
+						<Box sx={{display: 'flex', flexDirection: 'column', gap: 1}}>
 						<TextField
 							multiline
-							label="(channelID) => boolean"
+							label="(channelName) => boolean"
 							rows={8}
+							value={filterEdit}
+							onChange={e => SetFilterEdit(e.target.value)}
 						/>
+						<Button variant="contained" onClick={handleClick}>Apply</Button>
+						</Box>
 					</ListItem>
 				</List>
 			</Paper>
+			<Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+				<Alert onClose={handleClose} severity={tipServerity} sx={{ width: '100%' }}>
+					{tipMessage}
+				</Alert>
+			</Snackbar>
+			</>
 		</Modal>
 	);
 

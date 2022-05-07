@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import ReactDOM from 'react-dom/client';
 import { Paper, Box, AppBar, Typography, CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -16,10 +16,7 @@ import { UserPref, RTMMessage, RawRTMMessage } from './model';
 import { testMessage } from './resources/testItem';
 
 
-const ChannelFilter = (channelName: string) => {
-	return channelName[0] == '_';
-}
-
+const defaultChannelFilter = "(channelName) => channelName[0] == '_'";
 const ShowTestMessage = false;
 
 
@@ -46,17 +43,15 @@ const darkTheme = createTheme({
 
 const App = () => {
 
-	useEffect(() => {
-		const filter = safe_eval("module.exports = (channelName) => channelName[0] == '_'");
-		console.log(filter("_aaaa"));
-		console.log(filter("aaaaa"));
-	}, []);
-
 	// =========================:: STATEs ::===============================
 
 	const session: IuseSession = useSession();
 	const messages = useObjectList<RTMMessage>();
 
+	const [filterSource, SetFilterSource] = useState<null | string>(localStorage.getItem("channelFilter"));
+	const ChannelFilter = useRef<(channelName: string) => boolean> (
+		(channelName: string) => channelName[0] == '_'
+	);
 	const [avatar, setAvatar] = useState<undefined | string>();
 	const [channels, setChannels] = useState<string[]>([]);
 	const [openSetting, setOpenSetting] = useState<boolean>(false);
@@ -105,6 +100,24 @@ const App = () => {
 
 	// =========================:: EFFECTs ::===============================
 
+	// 初期化処理
+	useEffect(() => {
+		if (filterSource) {
+			try {
+				const filter = safe_eval("module.exports="+filterSource);
+				console.log(filter("TEST"));
+				ChannelFilter.current = filter;
+				console.log(`valid filter(${filterSource}) found.`);
+				return;
+			} catch (error) {
+			}
+		}
+		console.log("no valid filter. use default.");
+		SetFilterSource(defaultChannelFilter);
+		localStorage.setItem("channelFilter", defaultChannelFilter);
+
+	}, []);
+
 	// WSのURLが分かり次第接続開始
 	useEffect(() => {
 		if (session.wsEndpoint) {
@@ -149,12 +162,12 @@ const App = () => {
 			.then(response => response.json())
 			.then(data => {
 				data.channels.forEach((e: any) => channelDict.register(e.id, e));
-				setChannels(data.channels.filter((e: any) => ChannelFilter(e.name)).map((e: any) => e.id)); // TODO: pagenate is required to get over 100 channels
+				setChannels(data.channels.filter((e: any) => ChannelFilter.current(e.name)).map((e: any) => e.id)); // TODO: pagenate is required to get over 100 channels
 			});
 
 			if (ShowTestMessage) testMessage.forEach((e, i) => setTimeout(handleMessage, i*250, e));
 		}
-	}, [session.userID]);
+	}, [session.userID, ChannelFilter.current]);
 
 
 
@@ -165,7 +178,7 @@ const App = () => {
 
 	const addMessage = async (e: RawRTMMessage) => {
 		const channelName = (await channelDict.get(e.channel)).name;
-		if (!ChannelFilter(channelName)) return;
+		if (!ChannelFilter.current(channelName)) return;
 		const datetime = new Date(parseFloat(e.ts) * 1000);
 		const user = await userDict.get(e.user);
 		const thumbnail = (e.files?.[0]?.thumb_480) ? await getProtectedImage(e.files?.[0]?.thumb_480) : undefined;
@@ -312,7 +325,16 @@ const App = () => {
 	return (<>
 		<ThemeProvider theme={darkTheme}>
 			<CssBaseline />
-			<Settings isOpen={openSetting} close={() => setOpenSetting(false)}/>
+			<Settings 
+				safe_eval={safe_eval}
+				isOpen={openSetting}
+				close={() => setOpenSetting(false)}
+				filterSource={filterSource ?? defaultChannelFilter}
+				updateFilter={(func: () => boolean, source: string) => {
+					ChannelFilter.current = func;
+					SetFilterSource(source);
+					localStorage.setItem("channelFilter", source);
+				}}/>
 			<Box sx={{ display: 'flex', flexDirection: 'column' }}>
 				<Menubar
 					session={session}
