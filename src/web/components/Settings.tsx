@@ -14,11 +14,11 @@ const style = {
 };
 
 export interface SettingsProp {
-	safe_eval: any;
+	ipc: any;
 	isOpen: boolean;
 	close: () => void;
 	filterSource: string;
-	updateFilter: (func: () => boolean, source: string) => void;
+	updateFilter: (func: number, source: string) => void;
 }
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps> (
@@ -37,6 +37,17 @@ export const Settings = (props: SettingsProp) => {
 
 	const handleClick = () => {
 
+		const filter = props.ipc.sendSync("createFunction", filterEdit);
+		if (filter.error != null) {
+			SetTipMessage(`${filter.error}`);
+			SetTipServerity("error");
+			SetOpen(true);
+			return;
+		}
+
+		props.updateFilter(filter.id, filterEdit);
+
+/*
 		try {
 			const filter = props.safe_eval("module.exports="+filterEdit);
 			console.log(filter("TEST"));
@@ -47,6 +58,7 @@ export const Settings = (props: SettingsProp) => {
 			SetOpen(true);
 			return;
 		}
+		*/
 		SetTipMessage("Filter updated successfully.");
 		SetTipServerity("success");
 		SetOpen(true);

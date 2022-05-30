@@ -49,9 +49,7 @@ const App = () => {
 	const messages = useObjectList<RTMMessage>();
 
 	const [filterSource, SetFilterSource] = useState<null | string>(localStorage.getItem("channelFilter"));
-	const ChannelFilter = useRef<(channelName: string) => boolean> (
-		(channelName: string) => channelName[0] == '_'
-	);
+	const ChannelFilter = useRef<number>(0);
 	const [avatar, setAvatar] = useState<undefined | string>();
 	const [channels, setChannels] = useState<string[]>([]);
 	const [openSetting, setOpenSetting] = useState<boolean>(false);
@@ -103,13 +101,12 @@ const App = () => {
 	// 初期化処理
 	useEffect(() => {
 		if (filterSource) {
-			try {
-				const filter = safe_eval("module.exports="+filterSource);
-				console.log(filter("TEST"));
-				ChannelFilter.current = filter;
+			const filter = ipcRenderer.sendSync("createFunction", filterSource);
+			console.log(filter);
+			if (filter.error == null) {
+				ChannelFilter.current = filter.id;
 				console.log(`valid filter(${filterSource}) found.`);
 				return;
-			} catch (error) {
 			}
 		}
 		console.log("no valid filter. use default.");
@@ -162,7 +159,8 @@ const App = () => {
 			.then(response => response.json())
 			.then(data => {
 				data.channels.forEach((e: any) => channelDict.register(e.id, e));
-				setChannels(data.channels.filter((e: any) => ChannelFilter.current(e.name)).map((e: any) => e.id)); // TODO: pagenate is required to get over 100 channels
+				setChannels(data.channels.filter((e: any) => ipcRenderer.sendSync("applyFunction", {id: ChannelFilter.current, arg: e.name}))
+					.map((e: any) => e.id)); // TODO: pagenate is required to get over 100 channels
 			});
 
 			if (ShowTestMessage) testMessage.forEach((e, i) => setTimeout(handleMessage, i*250, e));
@@ -178,7 +176,8 @@ const App = () => {
 
 	const addMessage = async (e: RawRTMMessage) => {
 		const channelName = (await channelDict.get(e.channel)).name;
-		if (!ChannelFilter.current(channelName)) return;
+		if (!ipcRenderer.sendSync("applyFunction", {id: ChannelFilter.current, arg: channelName})) return;
+		//if (!ChannelFilter.current(channelName)) return;
 		const datetime = new Date(parseFloat(e.ts) * 1000);
 		const user = await userDict.get(e.user);
 		const thumbnail = (e.files?.[0]?.thumb_480) ? await getProtectedImage(e.files?.[0]?.thumb_480) : undefined;
@@ -326,11 +325,11 @@ const App = () => {
 		<ThemeProvider theme={darkTheme}>
 			<CssBaseline />
 			<Settings 
-				safe_eval={safe_eval}
+				ipc={ipcRenderer}
 				isOpen={openSetting}
 				close={() => setOpenSetting(false)}
 				filterSource={filterSource ?? defaultChannelFilter}
-				updateFilter={(func: () => boolean, source: string) => {
+				updateFilter={(func: number, source: string) => {
 					ChannelFilter.current = func;
 					SetFilterSource(source);
 					localStorage.setItem("channelFilter", source);
