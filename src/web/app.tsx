@@ -27,6 +27,7 @@ const endpoint_getUserInfo = 'https://slack.com/api/users.info';
 const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
 const endpoint_getChannels = 'https://slack.com/api/users.conversations';
 const endpoint_getHistory = 'https://slack.com/api/conversations.history';
+const endpoint_markAsRead = 'https://slack.com/api/conversations.mark';
 
 const ipcRenderer = (window as any).preload.ipcRenderer;
 
@@ -51,9 +52,10 @@ const App = () => {
 	const messages = useObjectList<RTMMessage>();
 
 	const [filterSource, setFilterSource] = usePersistent<string>("channelFilter", defaultChannelFilter);
-	const [autoMark, setAutoMark] = usePersistent<boolean>("automark", false);
-
 	const ChannelFilter = useRef<RegExp>(new RegExp(defaultChannelFilter));
+	const [autoMark, setAutoMark] = usePersistent<boolean>("automark", false);
+	const AutoMarkRef = useRef<boolean>(autoMark);
+
 	const [avatar, setAvatar] = useState<undefined | string>();
 	const [channels, setChannels] = useState<string[]>([]);
 	const [openSetting, setOpenSetting] = useState<boolean>(false);
@@ -102,7 +104,11 @@ const App = () => {
 
 	// =========================:: EFFECTs ::===============================
 
-	// 初期化処理
+	// Reference移し
+	useEffect(() => {
+		AutoMarkRef.current = autoMark;
+	}, [autoMark]);
+
 	useEffect(() => {
 		ChannelFilter.current = new RegExp(filterSource);
 	}, [filterSource]);
@@ -163,12 +169,32 @@ const App = () => {
 
 	// =========================:: LOGICs ::===============================
 
+	const markAsRead = (channel: string, ts: string) => {
+		fetch(endpoint_markAsRead, {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded',
+				'authorization': 'Bearer ' + session.userToken
+			},
+			body: `channel=${channel}&ts=${ts}`
+		})
+		.then(res => res.json())
+		.then(data => {
+			if (data.ok){
+				// Do nothing ;)
+			} else {
+				console.error("failed to mark as read. reason:" + data.error);
+			}
+		});
+	}
+
 
 	// 着信メッセージ処理系
 
 	const addMessage = async (e: RawRTMMessage) => {
 		const channelName = (await channelDict.get(e.channel)).name;
 		if (!channelName.match(ChannelFilter.current)) return;
+
 		const datetime = new Date(parseFloat(e.ts) * 1000);
 		const user = await userDict.get(e.user);
 		const thumbnail = (e.files?.[0]?.thumb_480) ? await getProtectedImage(e.files?.[0]?.thumb_480) : undefined;
@@ -192,6 +218,7 @@ const App = () => {
 		};
 		console.info("addMessage");
 		messages.push(rec);
+		if (AutoMarkRef.current) markAsRead(e.channel, e.ts);
 	}
 
 
@@ -218,6 +245,7 @@ const App = () => {
 	}
 
 	const removeReaction = (e: RawRTMMessage) => {
+		// TODO: TBI
 	}
 
 	const handleMessage = (body: any) => {
