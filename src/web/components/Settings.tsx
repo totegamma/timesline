@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Paper, Typography, Modal, Divider, TextField, Button, Snackbar } from '@mui/material';
+import { Box, Paper, Typography, Modal, Divider, TextField, Button, Snackbar, Switch } from '@mui/material';
 import MuiAlert, { AlertProps, AlertColor } from '@mui/material/Alert';
 import { List, ListSubheader, ListItem, ListItemText } from '@mui/material';
 
@@ -17,7 +17,9 @@ export interface SettingsProp {
 	isOpen: boolean;
 	close: () => void;
 	filterSource: string;
-	updateFilter: (regexp: RegExp, source: string) => void;
+	setFilterSource: (x: string) => void;
+	autoMark: boolean;
+	setAutoMark: (x: boolean) => void;
 }
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps> (
@@ -32,11 +34,11 @@ export const Settings = (props: SettingsProp) => {
 	const [tipMessage, SetTipMessage] = useState<string>("");
 	const [tipServerity, SetTipServerity] = useState<AlertColor>("success");
 
-	const [filterEdit, SetFilterEdit] = useState<string>(props.filterSource);
+	const [filterEdit, setFilterEdit] = useState<string>(props.filterSource);
 
 	const handleClick = () => {
 
-		props.updateFilter(new RegExp(filterEdit), filterEdit);
+		props.setFilterSource(filterEdit);
 
 		SetTipMessage("Filter updated successfully.");
 		SetTipServerity("success");
@@ -69,10 +71,17 @@ export const Settings = (props: SettingsProp) => {
 								label="regexp"
 								rows={2}
 								value={filterEdit}
-								onChange={e => SetFilterEdit(e.target.value)}
+								onChange={e => setFilterEdit(e.target.value)}
 							/>
 							<Button variant="contained" onClick={handleClick}>Apply</Button>
 						</Box>
+					</ListItem>
+					<ListItem>
+						<ListItemText primary="Automatically mark as read"/>
+						<Switch
+							checked={props.autoMark}
+							onChange={(e) => props.setAutoMark(e.target.checked)}
+						/>
 					</ListItem>
 				</List>
 			</Paper>

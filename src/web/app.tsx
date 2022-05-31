@@ -10,6 +10,7 @@ import { Settings } from './components/Settings';
 import { useSession, IuseSession } from './hooks/useSession';
 import { useResourceManager, IuseResourceManager } from './hooks/useResourceManager';
 import { useObjectList, IuseObjectList } from './hooks/useObjectList';
+import { usePersistent } from './hooks/usePersistent';
 
 import { UserPref, RTMMessage, RawRTMMessage } from './model';
 
@@ -28,7 +29,6 @@ const endpoint_getChannels = 'https://slack.com/api/users.conversations';
 const endpoint_getHistory = 'https://slack.com/api/conversations.history';
 
 const ipcRenderer = (window as any).preload.ipcRenderer;
-const safe_eval = (window as any).preload.safe_eval;
 
 const darkTheme = createTheme({
 	palette: {
@@ -50,7 +50,9 @@ const App = () => {
 	const session: IuseSession = useSession();
 	const messages = useObjectList<RTMMessage>();
 
-	const [filterSource, SetFilterSource] = useState<null | string>(localStorage.getItem("channelFilter"));
+	const [filterSource, setFilterSource] = usePersistent<string>("channelFilter", defaultChannelFilter);
+	const [autoMark, setAutoMark] = usePersistent<boolean>("automark", false);
+
 	const ChannelFilter = useRef<RegExp>(new RegExp(defaultChannelFilter));
 	const [avatar, setAvatar] = useState<undefined | string>();
 	const [channels, setChannels] = useState<string[]>([]);
@@ -102,15 +104,8 @@ const App = () => {
 
 	// 初期化処理
 	useEffect(() => {
-		if (filterSource) {
-			ChannelFilter.current = new RegExp(filterSource);
-		}
-		console.log("no valid filter. use default.");
-		SetFilterSource(defaultChannelFilter);
-		localStorage.setItem("channelFilter", defaultChannelFilter);
-		//ChannelFilter.current = new RegExp(defaultChannelFilter);
-
-	}, []);
+		ChannelFilter.current = new RegExp(filterSource);
+	}, [filterSource]);
 
 	// WSのURLが分かり次第接続開始
 	useEffect(() => {
@@ -323,12 +318,11 @@ const App = () => {
 			<Settings 
 				isOpen={openSetting}
 				close={() => setOpenSetting(false)}
-				filterSource={filterSource ?? defaultChannelFilter}
-				updateFilter={(regexp: RegExp, source: string) => {
-					ChannelFilter.current = regexp;
-					SetFilterSource(source);
-					localStorage.setItem("channelFilter", source);
-				}}/>
+				filterSource={filterSource}
+				setFilterSource={setFilterSource}
+				autoMark={autoMark}
+				setAutoMark={setAutoMark}
+				/>
 			<Box sx={{ display: 'flex', flexDirection: 'column' }}>
 				<Menubar
 					session={session}
