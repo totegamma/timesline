@@ -15,10 +15,12 @@ import { UserPref, RTMMessage, RawRTMMessage } from './model';
 
 import { testMessage } from './resources/testItem';
 
+import './style.css'
+
+const { toHTML } = require("slack-markdown");
 
 const defaultChannelFilter = "_.+";
 const ShowTestMessage = false;
-
 
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
 const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
@@ -259,6 +261,10 @@ const App = () => {
 		const datetime = new Date(parseFloat(e.ts) * 1000);
 		const user = await userDict.get(e.user);
 		const thumbnail = (e.files?.[0]?.thumb_480) ? await getProtectedImage(e.files?.[0]?.thumb_480) : undefined;
+
+		const text = e.text.replace(/&gt;+/g, '>').replace(/&lt;+/g, '<').replace(/&amp;+/g, '&');
+		console.log(text);
+		console.log(toHTML(text));
 
 		return {
 			type: e.type,

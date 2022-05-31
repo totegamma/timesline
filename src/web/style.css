@@ -1,0 +1,21 @@
+
+pre {
+	background: #222;
+	border: 1px solid #333;
+	border-radius: 16px;
+	overflow: scroll;
+	padding: 0 10px;
+}
+
+blockquote {
+	padding-left: 10px;
+	border-left: 4px solid #eee;
+	margin-inline-start: 0;
+	margin-inline-end: 0;
+	margin-block-start: 0;
+	margin-block-end: 0;
+}
+
+a {
+	color: rgb(29, 155, 240);
+}
