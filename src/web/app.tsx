@@ -254,8 +254,6 @@ const App = () => {
 		return URL.createObjectURL(data);
 	}
 
-
-
 	// 履歴取得系
 	const hist2msg = async (e: any, channel: string, channelID: string) => {
 		const datetime = new Date(parseFloat(e.ts) * 1000);
@@ -263,8 +261,6 @@ const App = () => {
 		const thumbnail = (e.files?.[0]?.thumb_480) ? await getProtectedImage(e.files?.[0]?.thumb_480) : undefined;
 
 		const text = e.text.replace(/&gt;+/g, '>').replace(/&lt;+/g, '<').replace(/&amp;+/g, '&');
-		console.log(text);
-		console.log(toHTML(text));
 
 		return {
 			type: e.type,
