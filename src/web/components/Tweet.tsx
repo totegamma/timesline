@@ -3,8 +3,9 @@ import { ListItem, Box, Avatar, Typography, IconButton, Link, Paper } from '@mui
 
 import { ReactionListProps, ReactionList } from './ReactionList';
 import { Reaction, RTMMessage } from '../model';
+import { marked } from "marked";
 
-
+const Emoji = require('node-emoji');
 
 export interface TweetProps {
 	message: RTMMessage;
@@ -32,8 +33,9 @@ function Template(props: TweetProps & {children?: ReactNode}){
 					</Typography>
 				</Box>
 				<Box>
-					<Typography sx={{overflowWrap: 'anywhere'}}>
-						{props.message.text}
+					<Typography
+						dangerouslySetInnerHTML={{__html: marked(Emoji.emojify(props.message.text.replace(/&gt;+/g, '>'), (key: string) => `<img src="${props.emojiDict[key]}" width="16px" height="16px"/>`))}}
+						sx={{overflowWrap: 'anywhere', minWidth: 0, maxWidth: 'calc(100vw - 92px)'}}>
 					</Typography>
 				</Box>
 				{(props.message.attachmentThumbnail) &&
@@ -47,6 +49,7 @@ function Template(props: TweetProps & {children?: ReactNode}){
 		</ListItem>
 	)
 }
+//props.emojiDict[data.key]
 
 export function Tweet(props: TweetProps) {
 	return (<>
