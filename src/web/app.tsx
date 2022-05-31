@@ -16,7 +16,7 @@ import { UserPref, RTMMessage, RawRTMMessage } from './model';
 import { testMessage } from './resources/testItem';
 
 
-const defaultChannelFilter = "(channelName) => channelName[0] == '_'";
+const defaultChannelFilter = "_.+";
 const ShowTestMessage = false;
 
 
@@ -49,7 +49,7 @@ const App = () => {
 	const messages = useObjectList<RTMMessage>();
 
 	const [filterSource, SetFilterSource] = useState<null | string>(localStorage.getItem("channelFilter"));
-	const ChannelFilter = useRef<number>(0);
+	const ChannelFilter = useRef<RegExp>(new RegExp(defaultChannelFilter));
 	const [avatar, setAvatar] = useState<undefined | string>();
 	const [channels, setChannels] = useState<string[]>([]);
 	const [openSetting, setOpenSetting] = useState<boolean>(false);
@@ -101,17 +101,12 @@ const App = () => {
 	// 初期化処理
 	useEffect(() => {
 		if (filterSource) {
-			const filter = ipcRenderer.sendSync("createFunction", filterSource);
-			console.log(filter);
-			if (filter.error == null) {
-				ChannelFilter.current = filter.id;
-				console.log(`valid filter(${filterSource}) found.`);
-				return;
-			}
+			ChannelFilter.current = new RegExp(filterSource);
 		}
 		console.log("no valid filter. use default.");
 		SetFilterSource(defaultChannelFilter);
 		localStorage.setItem("channelFilter", defaultChannelFilter);
+		//ChannelFilter.current = new RegExp(defaultChannelFilter);
 
 	}, []);
 
@@ -159,7 +154,7 @@ const App = () => {
 			.then(response => response.json())
 			.then(data => {
 				data.channels.forEach((e: any) => channelDict.register(e.id, e));
-				setChannels(data.channels.filter((e: any) => ipcRenderer.sendSync("applyFunction", {id: ChannelFilter.current, arg: e.name}))
+				setChannels(data.channels.filter((e: any) => e.name.match(ChannelFilter.current))
 					.map((e: any) => e.id)); // TODO: pagenate is required to get over 100 channels
 			});
 
@@ -176,8 +171,7 @@ const App = () => {
 
 	const addMessage = async (e: RawRTMMessage) => {
 		const channelName = (await channelDict.get(e.channel)).name;
-		if (!ipcRenderer.sendSync("applyFunction", {id: ChannelFilter.current, arg: channelName})) return;
-		//if (!ChannelFilter.current(channelName)) return;
+		if (!channelName.match(ChannelFilter.current)) return;
 		const datetime = new Date(parseFloat(e.ts) * 1000);
 		const user = await userDict.get(e.user);
 		const thumbnail = (e.files?.[0]?.thumb_480) ? await getProtectedImage(e.files?.[0]?.thumb_480) : undefined;
@@ -325,12 +319,11 @@ const App = () => {
 		<ThemeProvider theme={darkTheme}>
 			<CssBaseline />
 			<Settings 
-				ipc={ipcRenderer}
 				isOpen={openSetting}
 				close={() => setOpenSetting(false)}
 				filterSource={filterSource ?? defaultChannelFilter}
-				updateFilter={(func: number, source: string) => {
-					ChannelFilter.current = func;
+				updateFilter={(regexp: RegExp, source: string) => {
+					ChannelFilter.current = regexp;
 					SetFilterSource(source);
 					localStorage.setItem("channelFilter", source);
 				}}/>

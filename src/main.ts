@@ -1,8 +1,6 @@
 import path from 'path';
 import { BrowserWindow, app, ipcMain, shell } from 'electron';
 
-let safe_eval = require('eval');
-
 // 開発モードの場合はホットリロードする
 if (process.env.NODE_ENV === 'development') {
 	const execPath =
@@ -38,31 +36,5 @@ app.once('window-all-closed', () => app.quit());
 ipcMain.on("openExternal", (event, data) => {
 	shell.openExternal(data);
 });
-
-
-var functions: ((arg: any) => any)[] = [];
-
-ipcMain.on("createFunction", (event, data) => {
-	try {
-		let func = safe_eval("module.exports="+data);
-		func("TEST");
-		let id = functions.push(func);
-		event.returnValue = {
-			error: null,
-			id: id-1
-		};
-	} catch (error) {
-		event.returnValue = {
-			error: `${error}`,
-			id: -1
-		}
-		return;
-	}
-});
-
-ipcMain.on("applyFunction", (event, data) => {
-	event.returnValue = functions[data.id](data.arg);
-});
-
 
 

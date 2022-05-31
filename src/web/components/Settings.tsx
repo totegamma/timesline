@@ -14,11 +14,10 @@ const style = {
 };
 
 export interface SettingsProp {
-	ipc: any;
 	isOpen: boolean;
 	close: () => void;
 	filterSource: string;
-	updateFilter: (func: number, source: string) => void;
+	updateFilter: (regexp: RegExp, source: string) => void;
 }
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps> (
@@ -37,28 +36,8 @@ export const Settings = (props: SettingsProp) => {
 
 	const handleClick = () => {
 
-		const filter = props.ipc.sendSync("createFunction", filterEdit);
-		if (filter.error != null) {
-			SetTipMessage(`${filter.error}`);
-			SetTipServerity("error");
-			SetOpen(true);
-			return;
-		}
+		props.updateFilter(new RegExp(filterEdit), filterEdit);
 
-		props.updateFilter(filter.id, filterEdit);
-
-/*
-		try {
-			const filter = props.safe_eval("module.exports="+filterEdit);
-			console.log(filter("TEST"));
-			props.updateFilter(filter, filterEdit);
-		} catch (error) {
-			SetTipMessage(`${error}`);
-			SetTipServerity("error");
-			SetOpen(true);
-			return;
-		}
-		*/
 		SetTipMessage("Filter updated successfully.");
 		SetTipServerity("success");
 		SetOpen(true);
@@ -87,8 +66,8 @@ export const Settings = (props: SettingsProp) => {
 						<Box sx={{display: 'flex', flex: 2, flexDirection: 'column', gap: 1}}>
 							<TextField
 								multiline
-								label="(channelName) => boolean"
-								rows={8}
+								label="regexp"
+								rows={2}
 								value={filterEdit}
 								onChange={e => SetFilterEdit(e.target.value)}
 							/>
