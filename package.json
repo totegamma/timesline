@@ -25,7 +25,6 @@
   },
   "devDependencies": {
     "@svgr/webpack": "^6.2.1",
-    "@types/marked": "^4.0.3",
     "@types/node": "^17.0.30",
     "@types/react": "^18.0.8",
     "@types/react-dom": "^18.0.3",
@@ -53,11 +52,11 @@
     "@types/node-emoji": "^1.8.1",
     "@types/websocket": "^1.0.5",
     "dotenv": "^16.0.0",
-    "marked": "^4.0.16",
     "node-emoji": "^1.11.0",
     "path-browserify": "^1.0.1",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
+    "slack-markdown": "^0.2.0",
     "websocket": "^1.0.34"
   }
 }
