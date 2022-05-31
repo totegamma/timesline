@@ -16,6 +16,8 @@ if (process.env.NODE_ENV === 'development') {
 // BrowserWindow インスタンスを作成する関数
 const createWindow = () => {
 	const mainWindow = new BrowserWindow({
+		width: 700,
+		height: 900,
 		webPreferences: {
 			preload: path.resolve(__dirname, 'preload.js'),
 		},
@@ -23,6 +25,11 @@ const createWindow = () => {
 
 	// レンダラープロセスをロード
 	mainWindow.loadFile('dist/index.html');
+
+	mainWindow.webContents.on('will-navigate', (e, url) => {
+		e.preventDefault();
+		shell.openExternal(url);
+	});
 };
 
 // アプリの起動イベント発火で上の関数を実行
