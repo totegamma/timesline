@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Box } from '@mui/material';
 import { AppBar, Toolbar, Icon } from '@mui/material';
-import { Menu, MenuItem, Tooltip, IconButton, Avatar, Divider, ListItemIcon } from '@mui/material';
+import { Menu, MenuItem, Tooltip, IconButton, Avatar, Divider, ListItemIcon, Badge } from '@mui/material';
+import { styled } from '@mui/material/styles';
 
 import LogoutIcon from '@mui/icons-material/Logout';
 import HistoryIcon from '@mui/icons-material/History';
@@ -18,6 +19,7 @@ export interface MenubarProps {
 	userPref: UserPref;
 	loadHistory: () => void;
 	openSetting: () => void;
+	connected: boolean;
 }
 
 export function Menubar(props: MenubarProps) {
@@ -48,7 +50,15 @@ export function Menubar(props: MenubarProps) {
 					aria-haspopup="true"
 					aria-expanded={open ? 'true' : undefined}
 					>
-					<Avatar src={props.userPref.avatar} sx={{ width: 32, height: 32 }}></Avatar>
+					<StyledBadge
+						overlap="circular"
+						anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+						variant="dot"
+						invisible={props.connected}
+					>
+						<Avatar src={props.userPref.avatar} sx={{ width: 32, height: 32 }}></Avatar>
+					</StyledBadge>
+
 					</IconButton>
 				</Tooltip>
 				}
@@ -114,3 +124,21 @@ export function Menubar(props: MenubarProps) {
 		</Menu>
 	</>);
 }
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+	'& .MuiBadge-badge': {
+		backgroundColor: 'red',
+		color: 'red',
+		boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
+			'&::after': {
+			position: 'absolute',
+			top: 0,
+			left: 0,
+			width: '100%',
+			height: '100%',
+			borderRadius: '50%',
+			border: '1px solid currentColor',
+			content: '""',
+		},
+	}
+}));

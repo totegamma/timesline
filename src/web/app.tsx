@@ -20,7 +20,7 @@ import './style.css'
 
 const { toHTML } = require("slack-markdown");
 
-const defaultChannelFilter = "_.+";
+const defaultChannelFilter = "^_.+";
 const ShowTestMessage = false;
 
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
@@ -55,6 +55,8 @@ const App = () => {
 	const ChannelFilter = useRef<RegExp>(new RegExp(defaultChannelFilter));
 	const [autoMark, setAutoMark] = usePersistent<boolean>("automark", false);
 	const AutoMarkRef = useRef<boolean>(autoMark);
+
+	const [connected, setConnected] = useState<boolean>(false);
 
 	const [avatar, setAvatar] = useState<undefined | string>();
 	const [channels, setChannels] = useState<string[]>([]);
@@ -110,6 +112,7 @@ const App = () => {
 	}, [autoMark]);
 
 	useEffect(() => {
+		console.log(filterSource);
 		ChannelFilter.current = new RegExp(filterSource);
 	}, [filterSource]);
 
@@ -117,10 +120,38 @@ const App = () => {
 	useEffect(() => {
 		if (session.wsEndpoint) {
 			const ws = new WebSocket(session.wsEndpoint);
+
+			ws.onopen = (event: any) => {
+				console.log("ws open");
+				console.info(event);
+				setConnected(true);
+			}
+
 			ws.onmessage = (event: any) => {
 				const body = JSON.parse(event.data);
 				handleMessage(body);
 			}
+
+			ws.onerror = (event: any) => {
+				console.log("ws error");
+				console.error(event);
+				setConnected(false);
+			}
+
+			ws.onclose = (event: any) => {
+				console.log("ws closed");
+				console.warn(event);
+				setConnected(false);
+			}
+
+			let watchdog = setInterval(() => { // TODO: handle response
+				ws.send(JSON.stringify({
+					id: 5858,
+					type: 'ping'
+				}));
+			}, 10000);
+
+			return () => clearInterval(watchdog);
 		}
 	}, [session.wsEndpoint]);
 
@@ -261,6 +292,8 @@ const App = () => {
 				removeReaction(body);
 				break;
 			default:
+				console.info('unknown message');
+				console.info(body);
 			break;
 		}
 	}
@@ -356,7 +389,9 @@ const App = () => {
 					session={session}
 					openSetting={() => setOpenSetting(true)}
 					loadHistory={loadHistory} 
-					userPref={{avatar: avatar, joinedChannels: channels}}></Menubar>
+					userPref={{avatar: avatar, joinedChannels: channels}}
+					connected={connected}
+					></Menubar>
 				<Box sx={{display: 'flex', flexGrow: 1}}>
 					{ session.logined() ? 
 						<Timeline ipc={ipcRenderer}
