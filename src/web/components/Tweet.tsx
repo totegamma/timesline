@@ -3,9 +3,7 @@ import { ListItem, Box, Avatar, Typography, IconButton, Link, Paper } from '@mui
 
 import { ReactionListProps, ReactionList } from './ReactionList';
 import { Reaction, RTMMessage } from '../model';
-const { toHTML } = require("slack-markdown");
 
-const Emoji = require('node-emoji');
 
 export interface TweetProps {
 	message: RTMMessage;
@@ -34,14 +32,7 @@ function Template(props: TweetProps & {children?: ReactNode}){
 				</Box>
 				<Box>
 					<Typography
-						dangerouslySetInnerHTML={{__html: 
-							Emoji.emojify(
-								toHTML(
-									props.message.text.replace(/&gt;+/g, '>').replace(/&lt;+/g, '<').replace(/&amp;+/g, '&')
-								),
-								(key: string) => `<img src="${props.emojiDict[key]}" width="16px" height="16px"/>`
-							)
-						}}
+						dangerouslySetInnerHTML={{__html: props.message.text}}
 						sx={{overflowWrap: 'anywhere', minWidth: 0, maxWidth: 'calc(100vw - 92px)'}}>
 					</Typography>
 				</Box>

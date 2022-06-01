@@ -8,7 +8,6 @@ import { IuseResourceManager } from '../hooks/useResourceManager';
 import { IuseObjectList } from '../hooks/useObjectList';
 import { UserPref, Reaction, RTMMessage } from '../model';
 
-const endpoint_getEmojiList = 'https://slack.com/api/emoji.list';
 const endpoint_getPermalink = 'https://slack.com/api/chat.getPermalink';
 
 export interface TimelineProps {
@@ -17,38 +16,11 @@ export interface TimelineProps {
 	messages: IuseObjectList<RTMMessage>,
 	userPref: UserPref,
 	userDict: IuseResourceManager<any>,
-	channelDict:IuseResourceManager<any>
+	channelDict:IuseResourceManager<any>,
+	emojiDict: { [id:string]: string }
 }
 
 export function Timeline(props: TimelineProps) {
-
-	const emojiDict = useRef<{ [key: string]: string}>({});
-
-	useEffect(() =>  {
-
-		const requestOptions = {
-			method: 'POST',
-			headers: {
-				'authorization': 'Bearer ' + props.session.userToken
-			}
-		};
-
-		fetch(endpoint_getEmojiList, requestOptions)
-		.then(res => res.json())
-		.then(data => {
-			if (data.ok){
-				emojiDict.current = data.emoji
-			} else {
-				console.error("failed to get emoji list");
-			}
-		});
-
-	}, []);
-
-
-	useEffect(() => {
-		console.info("re-rendered!");
-	});
 
 	const openInSlack = async (channelID: string, ts: string) => {
 		const requestOptions = {
@@ -109,16 +81,16 @@ export function Timeline(props: TimelineProps) {
 					{(() => {
 					switch (e.thread.length) {
 						case 0:
-							return <Tweet message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={emojiDict.current} />
+							return <Tweet message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={props.emojiDict} />
 						break;
 						case 1:
-							return <TweetWith1Reply message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={emojiDict.current} />
+							return <TweetWith1Reply message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={props.emojiDict} />
 						break;
 						case 2:
-							return <TweetWith2Reply message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={emojiDict.current} />
+							return <TweetWith2Reply message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={props.emojiDict} />
 						break;
 						default:
-							return <TweetWithMoreThan3Reply message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={emojiDict.current} />
+							return <TweetWithMoreThan3Reply message={e} openExternal={openInSlack} openBrowser={(url: string) => props.ipc.send("openExternal", url)} emojiDict={props.emojiDict} />
 						break;
 					}
 					})()}

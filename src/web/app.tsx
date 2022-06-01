@@ -18,12 +18,14 @@ import { testMessage } from './resources/testItem';
 
 import './style.css'
 
+const Emoji = require('node-emoji');
 const { toHTML } = require("slack-markdown");
 
 const defaultChannelFilter = "^_.+";
 const ShowTestMessage = false;
 
 const endpoint_getUserInfo = 'https://slack.com/api/users.info';
+const endpoint_getEmojiList = 'https://slack.com/api/emoji.list';
 const endpoint_getChannelInfo = 'https://slack.com/api/conversations.info';
 const endpoint_getChannels = 'https://slack.com/api/users.conversations';
 const endpoint_getHistory = 'https://slack.com/api/conversations.history';
@@ -61,6 +63,8 @@ const App = () => {
 	const [avatar, setAvatar] = useState<undefined | string>();
 	const [channels, setChannels] = useState<string[]>([]);
 	const [openSetting, setOpenSetting] = useState<boolean>(false);
+
+	const emojiDict = useRef<{ [key: string]: string}>({});
 
 	const userDict = useResourceManager<any>(async (key: string) => {
 		const res = await fetch(endpoint_getUserInfo, {
@@ -106,13 +110,36 @@ const App = () => {
 
 	// =========================:: EFFECTs ::===============================
 
+	useEffect(() =>  {
+
+		if (session.logined()) {
+			const requestOptions = {
+				method: 'POST',
+				headers: {
+					'authorization': 'Bearer ' + session.userToken
+				}
+			};
+
+			fetch(endpoint_getEmojiList, requestOptions)
+			.then(res => res.json())
+			.then(data => {
+				if (data.ok){
+					emojiDict.current = data.emoji
+				} else {
+					console.error("failed to get emoji list");
+				}
+			});
+		}
+
+	}, [session.logined()]);
+
+
 	// Reference移し
 	useEffect(() => {
 		AutoMarkRef.current = autoMark;
 	}, [autoMark]);
 
 	useEffect(() => {
-		console.log(filterSource);
 		ChannelFilter.current = new RegExp(filterSource);
 	}, [filterSource]);
 
@@ -200,6 +227,15 @@ const App = () => {
 
 	// =========================:: LOGICs ::===============================
 
+	const slackify = (input: string): string => {
+		return Emoji.emojify(
+				toHTML(
+					input.replace(/&gt;+/g, '>').replace(/&lt;+/g, '<').replace(/&amp;+/g, '&')
+				),
+				(key: string) => `<img src="${emojiDict.current[key]}" width="16px" height="16px"/>`
+			);
+	}
+
 	const markAsRead = (channel: string, ts: string) => {
 		fetch(endpoint_markAsRead, {
 			method: 'POST',
@@ -237,7 +273,7 @@ const App = () => {
 			user: user.display_name,
 			channel: channelName,
 			channelID: e.channel,
-			text: e.text,
+			text: slackify(e.text),
 			avatar: user.image_192,
 			datetime: datetime.toLocaleString(),
 			reactions: [],
@@ -292,8 +328,6 @@ const App = () => {
 				removeReaction(body);
 				break;
 			default:
-				console.info('unknown message');
-				console.info(body);
 			break;
 		}
 	}
@@ -316,8 +350,6 @@ const App = () => {
 		const user = await userDict.get(e.user);
 		const thumbnail = (e.files?.[0]?.thumb_480) ? await getProtectedImage(e.files?.[0]?.thumb_480) : undefined;
 
-		const text = e.text.replace(/&gt;+/g, '>').replace(/&lt;+/g, '<').replace(/&amp;+/g, '&');
-
 		return {
 			type: e.type,
 			ts: e.ts,
@@ -326,7 +358,7 @@ const App = () => {
 			user: user.display_name,
 			channel: channel,
 			channelID: channelID,
-			text: e.text,
+			text: slackify(e.text),
 			avatar: user.image_192,
 			datetime: datetime.toLocaleString(),
 			parent: undefined,
@@ -398,7 +430,8 @@ const App = () => {
 								  session={session}
 								  messages={messages}
 								  userDict={userDict}
-								  channelDict={channelDict} 
+								  channelDict={channelDict}
+								  emojiDict={emojiDict.current}
 								  userPref={{avatar: avatar, joinedChannels: channels}}/>
 						:
 						<Login ipc={ipcRenderer} session={session}></Login> }
