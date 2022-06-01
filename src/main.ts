@@ -5,7 +5,7 @@ import { BrowserWindow, app, ipcMain, shell } from 'electron';
 if (process.env.NODE_ENV === 'development') {
 	const execPath =
 		process.platform === 'win32'
-			? '../node_modules/electron/dist/electron.exe'
+			? '../node_modules/electron/build/electron.exe'
 			: '../node_modules/.bin/electron';
 
 			require('electron-reload')(__dirname, {
@@ -24,7 +24,7 @@ const createWindow = () => {
 	});
 
 	// レンダラープロセスをロード
-	mainWindow.loadFile('dist/index.html');
+	mainWindow.loadFile('build/index.html');
 
 	mainWindow.webContents.on('will-navigate', (e, url) => {
 		e.preventDefault();

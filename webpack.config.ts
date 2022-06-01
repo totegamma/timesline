@@ -28,7 +28,7 @@ const common: Configuration = {
 	externals: ['fsevents'],
 	output: {
 		// バンドルファイルの出力先（ここではプロジェクト直下の 'dist' ディレクトリ）
-		path: path.resolve(__dirname, 'dist'),
+		path: path.resolve(__dirname, 'build'),
 		// webpack@5 + electron では必須の設定
 		publicPath: './',
 		// エントリーセクションでチャンク名を付けていれば
