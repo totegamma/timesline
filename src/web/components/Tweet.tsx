@@ -69,12 +69,12 @@ export function TweetWith1Reply(props: TweetProps) {
 		<Template message={props.message} openExternal={props.openExternal} openBrowser={props.openBrowser} emojiDict={props.emojiDict}>
 			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
 				<Box sx={{width: '0', height: '38px'}}></Box>
-				<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', flex: 1, border: '2px solid #333639'}}></Box>
 			</Box>
 		</Template>
 		<Template message={props.message.thread[0]} openExternal={props.openExternal} openBrowser={props.openBrowser} emojiDict={props.emojiDict}>
 			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-				<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', height: '38px', border: '2px solid #333639'}}></Box>
 				<Box sx={{width: '0', flex: 1}}></Box>
 			</Box>
 		</Template>
@@ -87,18 +87,18 @@ export function TweetWith2Reply(props: TweetProps) {
 		<Template message={props.message} openExternal={props.openExternal} openBrowser={props.openBrowser} emojiDict={props.emojiDict}>
 			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
 				<Box sx={{width: '0', height: '38px'}}></Box>
-				<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', flex: 1, border: '2px solid #333639'}}></Box>
 			</Box>
 		</Template>
 		<Template message={props.message.thread[0]} openExternal={props.openExternal} openBrowser={props.openBrowser} emojiDict={props.emojiDict}>
 			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-				<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
-				<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', height: '38px', border: '2px solid #333639'}}></Box>
+				<Box sx={{width: '0', flex: 1, border: '2px solid #333639'}}></Box>
 			</Box>
 		</Template>
 		<Template message={props.message.thread[1]} openExternal={props.openExternal} openBrowser={props.openBrowser} emojiDict={props.emojiDict}>
 			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-				<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', height: '38px', border: '2px solid #333639'}}></Box>
 				<Box sx={{width: '0', flex: 1}}></Box>
 			</Box>
 		</Template>
@@ -111,13 +111,13 @@ export function TweetWithMoreThan3Reply(props: TweetProps) {
 		<Template message={props.message} openExternal={props.openExternal} openBrowser={props.openBrowser} emojiDict={props.emojiDict}>
 			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
 				<Box sx={{width: '0', height: '38px'}}></Box>
-				<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', flex: 1, border: '2px solid #333639'}}></Box>
 			</Box>
 		</Template>
 
 		<ListItem sx={{alignItems: 'flex-start', flex: 1}}>
 			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-				<Box sx={{width: '0', flex: 1, border: '1.5px dashed #333639'}}></Box>
+				<Box sx={{width: '0', flex: 1, border: '2px dashed #333639'}}></Box>
 			</Box>
 			<Box sx={{width: '48px', mr: '12px'}}></Box>
 			<Link component="button" underline='hover' color='primary' onClick={() => props.openExternal(props.message.channelID, props.message.ts)}>
@@ -127,13 +127,13 @@ export function TweetWithMoreThan3Reply(props: TweetProps) {
 
 		<Template message={props.message.thread[props.message.thread.length-2]} openExternal={props.openExternal} openBrowser={props.openBrowser} emojiDict={props.emojiDict}>
 			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-				<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
-				<Box sx={{width: '0', flex: 1, border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', height: '38px', border: '2px solid #333639'}}></Box>
+				<Box sx={{width: '0', flex: 1, border: '2px solid #333639'}}></Box>
 			</Box>
 		</Template>
 		<Template message={props.message.thread[props.message.thread.length-1]} openExternal={props.openExternal} openBrowser={props.openBrowser} emojiDict={props.emojiDict}>
 			<Box sx={{position: 'absolute', left: '16px', top: '0', width: '48px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-				<Box sx={{width: '0', height: '38px', border: '1.5px solid #333639'}}></Box>
+				<Box sx={{width: '0', height: '38px', border: '2px solid #333639'}}></Box>
 				<Box sx={{width: '0', flex: 1}}></Box>
 			</Box>
 		</Template>
